@@ -10,6 +10,10 @@ RSpec.describe JoshLang do
   end
 
   describe 'numbers (floats)' do
+    specify 'they can be the digits 0 - 9' do
+      assert_parses '1234567890', type: :number, value: 1234567890.0
+    end
+
     specify 'they don\'t need a decimal' do
       assert_parses '1', type: :number, value: 1.0
       assert_parses '12', type: :number, value: 12.0
@@ -17,6 +21,7 @@ RSpec.describe JoshLang do
 
     specify 'they can be floats' do
       assert_parses '1.2', type: :number, value: 1.2
+      assert_parses '12.34', type: :number, value: 12.34
     end
   end
 

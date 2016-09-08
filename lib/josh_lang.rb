@@ -6,7 +6,7 @@ grammar JoshLangParser
     number
   end
   rule number
-    [0-9]+ {
+    [0-9]+ ("." [0-9]+)? {
       def to_ast
         {type: :number, value: text_value.to_f}
       end
