@@ -26,8 +26,11 @@ RSpec.describe JoshLang do
   end
 
   describe 'strings' do
-    it 'parses strings' do
-      assert_parses '"a"', type: :string, value: "a"
+    it 'matches double quotes, any amount of non-doublequotes, doublequotes' do
+      assert_parses '""',         type: :string, value: ""
+      assert_parses '"a"',        type: :string, value: "a"
+      assert_parses '"abc"',      type: :string, value: "abc"
+      assert_parses '"ab 123cz"', type: :string, value: "ab 123cz"
     end
   end
 
