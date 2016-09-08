@@ -38,7 +38,7 @@ grammar JoshLangParser
   end
 
   rule paren_args
-    first:(expression?) rest:("," whitespace expression)* {
+    first:(expression?) rest:(whitespace "," whitespace expression)* {
       def to_ast
         if first.empty?
           []

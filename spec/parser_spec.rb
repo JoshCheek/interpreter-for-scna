@@ -45,6 +45,25 @@ RSpec.describe JoshLang do
       ]
     end
 
+    it 'allows multiple arguments by delimiting them with a comma' do
+      expected = {type: :message, name: "()", arguments: [
+        {type: :number, value: 1.0},
+        {type: :number, value: 2.0},
+      ]}
+      assert_parses '(1,2)',    expected
+      assert_parses '(1, 2)',   expected
+      assert_parses '(1, 2 )',  expected
+      assert_parses '(1 , 2 )', expected
+    end
+
+    it 'allows arguments to be any expression, including other parentheses' do
+      assert_parses '("a", 2, 3)', type: :message, name: "()", arguments: [
+        {type: :string, value: "a"},
+        {type: :number, value: 2.0},
+        {type: :number, value: 3.0},
+      ]
+    end
+
     it 'ignores whitespace between the ends' do
       assert_parses '( )',   type: :message, name: "()", arguments: []
       assert_parses '(  )',  type: :message, name: "()", arguments: []
@@ -53,18 +72,14 @@ RSpec.describe JoshLang do
       ]
     end
 
-    it 'allows multiple arguments by delimiting them with a comma' do
-      assert_parses '(1, 2)', type: :message, name: "()", arguments: [
-        {type: :number, value: 1.0},
-        {type: :number, value: 2.0},
-      ]
-    end
-
-    xit 'allows arguments to be any expression, including other parentheses' do
-      assert_parses '("a", 2)', type: :message, name: "()", arguments: [
+    it 'allows whitespace around the comma delimiters' do
+      expected = {type: :message, name: "()", arguments: [
         {type: :string, value: "a"},
         {type: :number, value: 2.0},
-      ]
+        {type: :number, value: 3.0},
+      ]}
+      assert_parses '("a",2,3)',       expected
+      assert_parses '( "a" , 2 , 3 )', expected
     end
   end
 
