@@ -7,7 +7,7 @@ grammar JoshLangParser
   end
 
   rule expression
-    number / string / parentheses
+    number / string / parentheses / message
   end
 
   rule number
@@ -48,6 +48,14 @@ grammar JoshLangParser
           }
           [first.to_ast, *rest_asts]
         end
+      end
+    }
+  end
+
+  rule message
+    [^ ]+ {
+      def to_ast
+        {type: :message, name: text_value, arguments: []}
       end
     }
   end

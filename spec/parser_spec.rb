@@ -34,7 +34,7 @@ RSpec.describe JoshLang do
     end
   end
 
-  describe 'parentheses',t:true do
+  describe 'parentheses' do
     it 'begins with "(" and end with ")"' do
       assert_parses '()', type: :message, name: "()", arguments: []
     end
@@ -92,10 +92,14 @@ RSpec.describe JoshLang do
     end
   end
 
-  describe 'messages' do
-    it 'parses single word messages' do
-      assert_parses 'a', type: :message, name: "a", arguments: []
+  describe 'messages', t:true do
+    it 'are sequences of nonwhitespace characters that aren\'t literals' do
+      assert_parses 'a',   type: :message, name: "a",   arguments: []
+      assert_parses 'abc', type: :message, name: "abc", arguments: []
+      assert_parses '+',   type: :message, name: "+",   arguments: []
+      assert_parses '<-',  type: :message, name: "<-",  arguments: []
     end
+
     it 'parses multiple messages that are all single words' do
       assert_parses 'a b', {
         type: :expression,
