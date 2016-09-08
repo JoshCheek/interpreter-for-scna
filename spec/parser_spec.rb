@@ -25,48 +25,57 @@ RSpec.describe JoshLang do
     end
   end
 
-  it 'parses strings' do
-    assert_parses '"a"', type: :string, value: "a"
+  describe 'strings' do
+    it 'parses strings' do
+      assert_parses '"a"', type: :string, value: "a"
+    end
   end
 
-  it 'parses single word messages' do
-    assert_parses 'a', type: :message, name: "a", arguments: []
-  end
-  it 'parses parentheses and their arguments' do
-    assert_parses '()', type: :message, name: "()", arguments: []
-    assert_parses '(1)', type: :message, name: "()", arguments: [
-      {type: :number, value: 1}
-    ]
-    assert_parses '(1, 2)', type: :message, name: "()", arguments: [
-      {type: :number, value: 1},
-      {type: :number, value: 2},
-    ]
-    assert_parses '("a", 2)', type: :message, name: "()", arguments: [
-      {type: :string, value: "a"},
-      {type: :number, value: 2},
-    ]
-  end
-  it 'parses multiple messages that are all single words' do
-    assert_parses 'a b', {
-      type: :expression,
-      messages: [
-        {type: :messages, name: "a", arguments: []},
-        {type: :messages, name: "b", arguments: []},
-      ],
-    }
+  describe 'parentheses' do
+    it 'parses parentheses and their arguments' do
+      assert_parses '()', type: :message, name: "()", arguments: []
+      assert_parses '(1)', type: :message, name: "()", arguments: [
+        {type: :number, value: 1}
+      ]
+      assert_parses '(1, 2)', type: :message, name: "()", arguments: [
+        {type: :number, value: 1},
+        {type: :number, value: 2},
+      ]
+      assert_parses '("a", 2)', type: :message, name: "()", arguments: [
+        {type: :string, value: "a"},
+        {type: :number, value: 2},
+      ]
+    end
   end
 
-  it 'parses 2 messages where the second one is parentheses' do
-    assert_parses 'a (1)', {
-      type: :expression,
-      messages: [
-        {type: :messages, name: "a", arguments: []},
-        {type: :messages, name: "()", arguments: [
-          {type: :integer, value: 1},
-        ]},
-      ],
-    }
+  describe 'messages' do
+    it 'parses single word messages' do
+      assert_parses 'a', type: :message, name: "a", arguments: []
+    end
+    it 'parses multiple messages that are all single words' do
+      assert_parses 'a b', {
+        type: :expression,
+        messages: [
+          {type: :messages, name: "a", arguments: []},
+          {type: :messages, name: "b", arguments: []},
+        ],
+      }
+    end
+
+    it 'parses 2 messages where the second one is parentheses' do
+      assert_parses 'a (1)', {
+        type: :expression,
+        messages: [
+          {type: :messages, name: "a", arguments: []},
+          {type: :messages, name: "()", arguments: [
+            {type: :integer, value: 1},
+          ]},
+        ],
+      }
+    end
+  end
+
+  describe 'statements' do
+    # multiple space separated messages
   end
 end
-
-# multiple statements
