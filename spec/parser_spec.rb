@@ -81,6 +81,15 @@ RSpec.describe JoshLang do
       assert_parses '("a",2,3)',       expected
       assert_parses '( "a" , 2 , 3 )', expected
     end
+
+    it 'can have parens as its arguments' do
+      assert_parses '( () , (123))', type: :message, name: "()", arguments: [
+        {type: :message, name: "()", arguments: []},
+        {type: :message, name: "()", arguments: [
+          {type: :number, value: 123.0},
+        ]},
+      ]
+    end
   end
 
   describe 'messages' do
