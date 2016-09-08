@@ -1,27 +1,44 @@
 require 'josh_lang'
 
 RSpec.describe JoshLang do
-  it 'parses integers' do
-    assert_parses '1', type: :int, value: 1
+  def parse(code)
+    JoshLang.parse(code)
   end
+
+  def assert_parses(code, expected_ast)
+    expect(parse code).to eq expected_ast
+  end
+
+  describe 'numbers (floats)' do
+    specify 'they don\'t need a decimal' do
+      assert_parses '1', type: :number, value: 1.0
+      assert_parses '12', type: :number, value: 12.0
+    end
+
+    specify 'they can be floats' do
+      assert_parses '1.2', type: :number, value: 1.2
+    end
+  end
+
   it 'parses strings' do
     assert_parses '"a"', type: :string, value: "a"
   end
+
   it 'parses single word messages' do
     assert_parses 'a', type: :message, name: "a", arguments: []
   end
   it 'parses parentheses and their arguments' do
     assert_parses '()', type: :message, name: "()", arguments: []
     assert_parses '(1)', type: :message, name: "()", arguments: [
-      {type: :int, value: 1}
+      {type: :number, value: 1}
     ]
     assert_parses '(1, 2)', type: :message, name: "()", arguments: [
-      {type: :int, value: 1},
-      {type: :int, value: 2},
+      {type: :number, value: 1},
+      {type: :number, value: 2},
     ]
     assert_parses '("a", 2)', type: :message, name: "()", arguments: [
       {type: :string, value: "a"},
-      {type: :int, value: 2},
+      {type: :number, value: 2},
     ]
   end
   it 'parses multiple messages that are all single words' do
@@ -46,3 +63,5 @@ RSpec.describe JoshLang do
     }
   end
 end
+
+# multiple statements
