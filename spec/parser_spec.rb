@@ -6,7 +6,12 @@ RSpec.describe JoshLang do
   end
 
   def assert_parses(code, expected_ast)
-    expect(parse code).to eq expected_ast
+    ast = parse code
+    if expected_ast[:type] == :expression || ast[:messages].length != 1
+      expect(ast).to eq expected_ast
+    else
+      expect(ast[:messages][0]).to eq expected_ast
+    end
   end
 
   describe 'numbers (floats)' do
@@ -41,14 +46,14 @@ RSpec.describe JoshLang do
 
     it 'can contain an argument between the parens' do
       assert_parses '(1)', type: :message, name: "()", arguments: [
-        {type: :number, value: 1.0}
+        { type: :expression, messages: [{type: :number, value: 1.0}] }
       ]
     end
 
     it 'allows multiple arguments by delimiting them with a comma' do
       expected = {type: :message, name: "()", arguments: [
-        {type: :number, value: 1.0},
-        {type: :number, value: 2.0},
+        {type: :expression, messages: [{type: :number, value: 1.0}]},
+        {type: :expression, messages: [{type: :number, value: 2.0}]},
       ]}
       assert_parses '(1,2)',    expected
       assert_parses '(1, 2)',   expected
@@ -58,29 +63,29 @@ RSpec.describe JoshLang do
 
     it 'allows arguments to be any expression, including other parentheses' do
       assert_parses '("a", 2, 3)', type: :message, name: "()", arguments: [
-        {type: :string, value: "a"},
-        {type: :number, value: 2.0},
-        {type: :number, value: 3.0},
+        {type: :expression, messages: [{type: :string, value: "a"}]},
+        {type: :expression, messages: [{type: :number, value: 2.0}]},
+        {type: :expression, messages: [{type: :number, value: 3.0}]},
       ]
     end
 
     it 'ignores whitespace between the ends' do
-      assert_parses '()',   type: :message, name: "()", arguments: []
-      assert_parses '( )',   type: :message, name: "()", arguments: []
-      assert_parses '(  )',  type: :message, name: "()", arguments: []
-      assert_parses '(1)', type: :message, name: "()", arguments: [
-        {type: :number, value: 1.0}
-      ]
-      assert_parses '( 1 )', type: :message, name: "()", arguments: [
-        {type: :number, value: 1.0}
-      ]
+      empty = {type: :message, name: "()", arguments: []}
+      one   = {type: :message, name: "()", arguments: [
+        {type: :expression, messages: [{type: :number, value: 1.0}]}
+      ]}
+      assert_parses '()',    empty
+      assert_parses '( )',   empty
+      assert_parses '(  )',  empty
+      assert_parses '(1)',   one
+      assert_parses '( 1 )', one
     end
 
     it 'allows whitespace around the comma delimiters' do
       expected = {type: :message, name: "()", arguments: [
-        {type: :string, value: "a"},
-        {type: :number, value: 2.0},
-        {type: :number, value: 3.0},
+        {type: :expression, messages: [{type: :string, value: "a"}]},
+        {type: :expression, messages: [{type: :number, value: 2.0}]},
+        {type: :expression, messages: [{type: :number, value: 3.0}]},
       ]}
       assert_parses '("a",2,3)',       expected
       assert_parses '( "a" , 2 , 3 )', expected
@@ -88,10 +93,10 @@ RSpec.describe JoshLang do
 
     it 'can have parens as its arguments' do
       assert_parses '( () , (123))', type: :message, name: "()", arguments: [
-        {type: :message, name: "()", arguments: []},
-        {type: :message, name: "()", arguments: [
-          {type: :number, value: 123.0},
-        ]},
+        {type: :expression, messages: [{type: :message, name: "()", arguments: []}]},
+        {type: :expression, messages: [{type: :message, name: "()", arguments: [
+          {type: :expression, messages: [{type: :number, value: 123.0}]},
+        ]}]},
       ]
     end
   end
@@ -105,25 +110,25 @@ RSpec.describe JoshLang do
     end
 
     it 'parses messages sent to messages' do
-      assert_parses 'a b', {
+      assert_parses 'a b c', {
         type: :expression,
         messages: [
-          {type: :messages, name: "a", arguments: []},
-          {type: :messages, name: "b", arguments: []},
+          {type: :message, name: "a", arguments: []},
+          {type: :message, name: "b", arguments: []},
+          {type: :message, name: "c", arguments: []},
         ],
       }
     end
 
-    it 'parses 2 messages where the second one is parentheses' do
-      assert_parses 'a (1)', {
-        type: :expression,
-        messages: [
-          {type: :messages, name: "a", arguments: []},
-          {type: :messages, name: "()", arguments: [
-            {type: :integer, value: 1},
-          ]},
-        ],
-      }
+    it 'parses 2 messages where the second one is parentheses, parens don\'t need whitespace before them' do
+      expected = { type: :expression, messages: [
+        {type: :message, name: "a", arguments: []},
+        {type: :message, name: "()", arguments: [
+          {type: :expression, messages: [{type: :number, value: 1.0}]},
+        ]},
+      ]}
+      assert_parses 'a(1)', expected
+      assert_parses 'a (1)', expected
     end
 
     it 'can send mesages to literals'
