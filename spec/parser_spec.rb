@@ -6,11 +6,15 @@ RSpec.describe JoshLang do
   end
 
   def assert_parses(code, expected_ast)
-    ast = parse code
-    if expected_ast[:type] == :expression || ast[:messages].length != 1
-      expect(ast).to eq expected_ast
-    else
+    ast             = parse code
+    compare_sub_ast = expected_ast[:type]   != :expressions &&
+                      expected_ast[:type]   != :expression  &&
+                      ast[:type]            == :expression  &&
+                      ast[:messages].length == 1
+    if compare_sub_ast
       expect(ast[:messages][0]).to eq expected_ast
+    else
+      expect(ast).to eq expected_ast
     end
   end
 
@@ -101,7 +105,7 @@ RSpec.describe JoshLang do
     end
   end
 
-  describe 'messages', t:true do
+  describe 'messages' do
     it 'are sequences of nonwhitespace characters that aren\'t literals' do
       assert_parses 'a',   type: :message, name: "a",   arguments: []
       assert_parses 'abc', type: :message, name: "abc", arguments: []
@@ -131,10 +135,36 @@ RSpec.describe JoshLang do
       assert_parses 'a (1)', expected
     end
 
-    it 'can send mesages to literals'
+    it 'can send mesages to literals' do
+      expected = { type: :expression, messages: [
+        {type: :number, value: 1.0},
+        {type: :message, name: "b", arguments: []},
+      ]}
+      assert_parses '1 b', expected
+    end
+
+    it 'ignores trailing whitespace and newlines' do
+      expected = {type: :number, value: 1.0}
+      assert_parses "1",         expected
+      assert_parses "1 ",        expected
+      assert_parses "1\n",       expected
+      assert_parses "1 \n",      expected
+      assert_parses "1  \n\n\n", expected
+    end
   end
 
-  describe 'statements' do
-    # multiple space separated messages
+  describe 'program' do
+    it 'is a sequence of newline delimited expressions', t:true do
+      assert_parses "1 a\n2 b", type: :expressions, expressions: [
+        { type: :expression, messages: [
+          {type: :number, value: 1.0},
+          {type: :message, name: "a", arguments: []},
+        ]},
+        { type: :expression, messages: [
+          {type: :number, value: 2.0},
+          {type: :message, name: "b", arguments: []},
+        ]},
+      ]
+    end
   end
 end

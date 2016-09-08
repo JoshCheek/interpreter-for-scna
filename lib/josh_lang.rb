@@ -1,13 +1,22 @@
-require 'treetop'  # => true
+require 'treetop'
 
-Treetop.load_from_string <<-GRAMMAR  # => AParser
+Treetop.load_from_string <<-GRAMMAR
 grammar JoshLangParser
   rule program
-    expression
+    (expression "\\n"*)* {
+      def to_ast
+        expression_asts = elements.map { |e| e.expression.to_ast }
+        if expression_asts.length == 1
+          expression_asts.first
+        else
+          {type: :expressions, expressions: expression_asts}
+        end
+      end
+    }
   end
 
   rule expression
-    first:(literal / message) rest:(whitespace message)* {
+    first:(literal / message) rest:(whitespace message)* whitespace {
       def to_ast
         rest_asts = rest.elements.map { |e| e.message.to_ast }
         {type: :expression, messages: [first.to_ast, *rest_asts]}
@@ -56,7 +65,7 @@ grammar JoshLangParser
   end
 
   rule token_message
-    [^(), ]+ {
+    [^ ,()\\n]+ {
       def to_ast
         {type: :message, name: text_value, arguments: []}
       end
