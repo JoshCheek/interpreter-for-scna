@@ -65,8 +65,12 @@ RSpec.describe JoshLang do
     end
 
     it 'ignores whitespace between the ends' do
+      assert_parses '()',   type: :message, name: "()", arguments: []
       assert_parses '( )',   type: :message, name: "()", arguments: []
       assert_parses '(  )',  type: :message, name: "()", arguments: []
+      assert_parses '(1)', type: :message, name: "()", arguments: [
+        {type: :number, value: 1.0}
+      ]
       assert_parses '( 1 )', type: :message, name: "()", arguments: [
         {type: :number, value: 1.0}
       ]
@@ -100,7 +104,7 @@ RSpec.describe JoshLang do
       assert_parses '<-',  type: :message, name: "<-",  arguments: []
     end
 
-    it 'parses multiple messages that are all single words' do
+    it 'parses messages sent to messages' do
       assert_parses 'a b', {
         type: :expression,
         messages: [
@@ -121,6 +125,8 @@ RSpec.describe JoshLang do
         ],
       }
     end
+
+    it 'can send mesages to literals'
   end
 
   describe 'statements' do

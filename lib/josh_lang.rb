@@ -7,7 +7,7 @@ grammar JoshLangParser
   end
 
   rule expression
-    number / string / parentheses / message
+    number / string / parentheses_message / token_message
   end
 
   rule number
@@ -26,34 +26,24 @@ grammar JoshLangParser
     }
   end
 
-  rule parentheses
+  rule parentheses_message
     '(' whitespace paren_args whitespace ')' {
       def to_ast
-        { type: :message,
-          name: '()',
-          arguments: paren_args.to_ast
-        }
+        {type: :message, name: '()', arguments: paren_args.to_ast}
       end
     }
   end
 
   rule paren_args
-    first:(expression?) rest:(whitespace "," whitespace expression)* {
+    (whitespace expression whitespace ','?)* {
       def to_ast
-        if first.empty?
-          []
-        else
-          rest_asts = rest.elements.map { |ast|
-            ast.expression.to_ast
-          }
-          [first.to_ast, *rest_asts]
-        end
+        elements.map { |ast| ast.expression.to_ast }
       end
     }
   end
 
-  rule message
-    [^ ]+ {
+  rule token_message
+    [^() ]+ {
       def to_ast
         {type: :message, name: text_value, arguments: []}
       end
