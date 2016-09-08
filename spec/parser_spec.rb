@@ -34,19 +34,36 @@ RSpec.describe JoshLang do
     end
   end
 
-  describe 'parentheses' do
-    it 'parses parentheses and their arguments' do
+  describe 'parentheses',t:true do
+    it 'begins with "(" and end with ")"' do
       assert_parses '()', type: :message, name: "()", arguments: []
+    end
+
+    it 'can contain an argument between the parens' do
       assert_parses '(1)', type: :message, name: "()", arguments: [
-        {type: :number, value: 1}
+        {type: :number, value: 1.0}
       ]
+    end
+
+    it 'ignores whitespace between the ends' do
+      assert_parses '( )',   type: :message, name: "()", arguments: []
+      assert_parses '(  )',  type: :message, name: "()", arguments: []
+      assert_parses '( 1 )', type: :message, name: "()", arguments: [
+        {type: :number, value: 1.0}
+      ]
+    end
+
+    it 'allows multiple arguments by delimiting them with a comma' do
       assert_parses '(1, 2)', type: :message, name: "()", arguments: [
-        {type: :number, value: 1},
-        {type: :number, value: 2},
+        {type: :number, value: 1.0},
+        {type: :number, value: 2.0},
       ]
+    end
+
+    xit 'allows arguments to be any expression, including other parentheses' do
       assert_parses '("a", 2)', type: :message, name: "()", arguments: [
         {type: :string, value: "a"},
-        {type: :number, value: 2},
+        {type: :number, value: 2.0},
       ]
     end
   end

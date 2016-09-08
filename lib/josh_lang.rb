@@ -3,7 +3,11 @@ require 'treetop'  # => true
 Treetop.load_from_string <<-GRAMMAR  # => AParser
 grammar JoshLangParser
   rule program
-    number / string
+    expression
+  end
+
+  rule expression
+    number / string / parentheses
   end
 
   rule number
@@ -20,6 +24,36 @@ grammar JoshLangParser
         {type: :string, value: text_value[1...-1]}
       end
     }
+  end
+
+  rule parentheses
+    '(' whitespace paren_args whitespace ')' {
+      def to_ast
+        { type: :message,
+          name: '()',
+          arguments: paren_args.to_ast
+        }
+      end
+    }
+  end
+
+  rule paren_args
+    first:(expression?) rest:("," whitespace expression)* {
+      def to_ast
+        if first.empty?
+          []
+        else
+          rest_asts = rest.elements.map { |ast|
+            ast.expression.to_ast
+          }
+          [first.to_ast, *rest_asts]
+        end
+      end
+    }
+  end
+
+  rule whitespace
+    " "*
   end
 end
 GRAMMAR
