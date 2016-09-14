@@ -13,9 +13,10 @@ RSpec.describe 'Interpreting Biolangual' do
     @interpreter ||= Biolangual::Interpreter.new
   end
 
-  def parse(code_string)
-    Biolangual.parse(code_string)
-  end
+  def run(code)
+    ast = Biolangual.parse(code)
+    interpreter.evaluate!(ast)
+   end
 
   # TODO: Make a failing test that says to read the names of the tests before trying to pass them
 
@@ -45,9 +46,9 @@ RSpec.describe 'Interpreting Biolangual' do
       end
 
       specify 'an `error`\'s data is a description of what went wrong (start with a string)' do
-        response = assert_message_passing message: interpreter.biostring('some bs message')
+        response = assert_message_passing message: interpreter.biostring('some-bs-message')
         expect(response[0]).to eq :error
-        expect(response[1]).to eq "Number does not respond to \"some bs message\""
+        expect(response[1]).to eq "Number does not respond to \"some-bs-message\""
       end
     end
 
@@ -79,30 +80,34 @@ RSpec.describe 'Interpreting Biolangual' do
 
 
   describe 'evaluate' do
-    it 'takes an ast, and evaluates it, returning the last response' do
-      type, data = interpreter.evaluate(parse('false'))
-      expect(type).to eq :response
-      expect(data).to eq interpreter.false
+    it 'takes an ast, evaluates it, returns the result, even if its an error' do
+      ast        = Biolangual.parse('some-bs-message')
+      type, data = interpreter.evaluate(ast)
+      expect(type).to eq :error
+      expect(data).to match /some-bs-message/
     end
   end
 
-
-  # a helper method so its not as annoying to run code
-  def run(code)
-    ast = parse(code)
-    interpreter.evaluate(ast)
+  describe 'evaluate!' do
+    it 'takes an ast, evaluates it, returns the response\'s data' do
+      ast  = Biolangual.parse('false')
+      data = interpreter.evaluate!(ast)
+      expect(data).to eq interpreter.false
+    end
+    it 'raises an exception if the result is an error' do
+      ast = Biolangual.parse('some-bs-message')
+      expect { interpreter.evaluate!(ast) }
+        .to raise_error Biolangual::Error, /some-bs-message/
+    end
   end
+
 
   describe 'literals (objects that are created with syntax)' do
     specify 'can be numbers, objects which represent floats' do
-      type, data = run '123'
-      expect(type).to eq :response
-      expect(data.internal_data).to equal 123.0
+      expect(run('123.4').internal_data).to equal 123.4
     end
     specify 'can be strings, objects which wrap strings' do
-      type, response = run '"abc"'
-      expect(type).to eq :response
-      expect(response.internal_data).to eq "abc"
+      expect(run('"abc"').internal_data).to eq "abc"
     end
   end
 
@@ -241,6 +246,7 @@ end
     # which should start lookup on the object
 
 # better tests on function receiver / sender
+# when expression midway through is an error, it should stop evaluating
 
 __END__
   do (

@@ -1,4 +1,6 @@
 module Biolangual
+  Error = Class.new RuntimeError
+
   class Wrapper
     attr_accessor :internal_data
     def initialize(data)
@@ -20,11 +22,17 @@ module Biolangual
     end
 
     def biostring(ruby_string)
-      "biostring: #{ruby_string.inspect}"
+      Wrapper.new(ruby_string)
     end
 
     def biolist(ruby_array)
-      "List: #{ruby_array.inspect}"
+      Wrapper.new(ruby_array)
+    end
+
+    def evaluate!(ast)
+      type, data = evaluate(ast)
+      return data if type == :response
+      raise Error, data
     end
 
     def evaluate(ast)
@@ -35,11 +43,11 @@ module Biolangual
         last
       when :message
         # FIXME: string_proto is bs, we should know the caller and receiver
-        call string_proto, string_proto, ast[:name], ast[:arguments]
+        call string_proto, string_proto, biostring(ast[:name]), ast[:arguments]
       when :number
-        [:response, Wrapper.new(ast[:value])]
+        [:response, biostring(ast[:value])]
       when :string
-        [:response, Wrapper.new(ast[:value])]
+        [:response, biolist(ast[:value])]
       else
         raise "wat: #{ast.inspect}"
       end
@@ -58,8 +66,8 @@ module Biolangual
         arguments: arguments,
       }
 
-      if "biostring: \"some bs message\"" == message
-        [:error, "Number does not respond to \"some bs message\""]
+      if "some-bs-message" == message.internal_data
+        [:error, "Number does not respond to \"some-bs-message\""]
       else
         [:response, self.false]
       end
