@@ -25,7 +25,7 @@ grammar JoshLangParser
   end
 
   rule literal
-    number / string
+    number / string / boolean
   end
 
   rule number
@@ -40,6 +40,14 @@ grammar JoshLangParser
     '"' [^"]* '"' {
       def to_ast
         {type: :string, value: text_value[1...-1]}
+      end
+    }
+  end
+
+  rule boolean
+    ('true' / 'false') {
+      def to_ast
+        {type: :boolean, value: text_value=='true'}
       end
     }
   end
