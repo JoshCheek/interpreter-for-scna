@@ -28,7 +28,7 @@ RSpec.describe JoshLang do
       assert_parses '12', type: :number, value: 12.0
     end
 
-    specify 'they can have a decimal followed by more digits' do
+    specify 'they can be floats' do
       assert_parses '1.2', type: :number, value: 1.2
       assert_parses '12.34', type: :number, value: 12.34
     end
@@ -40,13 +40,6 @@ RSpec.describe JoshLang do
       assert_parses '"a"',        type: :string, value: "a"
       assert_parses '"abc"',      type: :string, value: "abc"
       assert_parses '"ab 123cz"', type: :string, value: "ab 123cz"
-    end
-  end
-
-  describe 'booleans' do
-    specify 'have the literal representation "true" and "false"' do
-      assert_parses 'true',  type: :boolean, value: true
-      assert_parses 'false', type: :boolean, value: false
     end
   end
 
@@ -161,7 +154,7 @@ RSpec.describe JoshLang do
   end
 
   describe 'program' do
-    it 'is a sequence of newline delimited expressions' do
+    it 'is a sequence of newline delimited expressions', t:true do
       assert_parses "1 a\n2 b", type: :expressions, expressions: [
         { type: :expression, messages: [
           {type: :number, value: 1.0},
