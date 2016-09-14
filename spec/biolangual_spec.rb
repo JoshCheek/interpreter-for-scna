@@ -6,6 +6,13 @@
 # side effects:         print_num               | ?
 # Numbers:              zero succ pred is_zero  | we have them
 
+# TODO: Is there really value in letting them have multiple prototypes?
+# it seems to be fucking up what I want to do (responders like method_missing)
+# Ruby's mixins seem much more elegant
+#
+# TODO: we could get rid of the syntax for multiple expressions with do(expr1, expr2, expr3)
+# where `do` just evaluates each arg in the context of the caller, and returns the last one
+
 require 'biolangual'
 
 RSpec.describe 'Interpreting Biolangual' do
@@ -149,7 +156,7 @@ RSpec.describe 'Interpreting Biolangual' do
 
 
   # TODO: If we allow dynamic responders, we can do away with the literals (123 becomes a message, and is matched by the responder that looks for messages that are number literals)
-  # then, we can also get rid of the special case for the first arg!
+  # then, we can also get rid of the special case for the first arg! and for evaluating nonmessages
   describe 'expressions' do
     specify 'can begin with a literal, in which case they evalute to that literal' do
       expect(run '123.4').to eq interpreter.bionum(123.4)
