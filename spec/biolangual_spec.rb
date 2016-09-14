@@ -7,24 +7,88 @@
 # Numbers:              zero succ pred is_zero  | we have them
 
 require 'biolangual'
+
 RSpec.describe 'Interpreting Biolangual' do
+  def interpreter
+    @interpreter ||= Biolangual::Interpreter.new
+  end
+
+  def evaluate(code_string)
+    interpreter.evaluate(parse(code_string))
+  end
+
+  # TODO: Make a failing test that says to read the names of the tests before trying to pass them
+
   describe 'an object is a function (invoked by the interpreter directly) that implements message passing by' do
     describe 'receiving `receiver`, `sender`, `message`, `arguments`' do
-      specify '`receiver`  the object getting the message'
-      specify '`sender`    the object giving the message'
-      specify '`message`   the data passing from the sender to the receiver, always a string for now'
-      specify '`arguments` is a list of objects needed for responding to the message'
+      specify '`receiver`  the object getting the message' do
+        assert_message_passing receiver: interpreter.number_proto
+      end
+      specify '`sender`    the object giving the message' do
+        assert_message_passing sender: interpreter.number_proto
+      end
+      specify '`message`   the data passing from the sender to the receiver, always a string for now' do
+        assert_message_passing message: interpreter.biostring('true') # a message it should respond to, just returns the object representing true
+      end
+      specify '`arguments` is a list of objects needed for responding to the message' do
+        arg = interpreter.biostring('some_arg')
+        assert_message_passing arguments: interpreter.biolist([arg])
+      end
     end
+
     describe 'returning one of `response` or `error` and their associated data' do
-      # maybe others, too, I haven\'t really thought about what would be possible (eg maybe you could get continuations by being clever with it)
-      specify 'a `response`\'s data is an object to be given back to the caller'
-      specify 'an `error`\'s data is a description of what went wrong (start with a string)'
+      specify 'a `response`\'s data is an object to be given back to the caller' do
+        # a message it should respond to, just returns the object representing false
+        response = assert_message_passing message: interpreter.biostring('false')
+        expect(response[0]).to eq :response
+        expect(response[1]).to eq interpreter.false
+      end
+
+      specify 'an `error`\'s data is a description of what went wrong (start with a string)' do
+        assert_message_passing message: interpreter.biostring('some bs message')
+        expect(response[0]).to eq :error
+        expect(response[1]).to eq "Number does not respond to \"some bs message\""
+      end
+    end
+
+    # you'll need to make some objects available to get past this step
+    def assert_message_passing(options)
+      some_object = interpreter.string_proto
+
+      # build the invocation
+      receiver  = options.fetch :receiver,  some_object
+      sender    = options.fetch :sender,    some_object
+      message   = options.fetch :message,   interpreter.biostring('identity') # a message it should respond to (just returns the receiver)
+      arguments = options.fetch :arguments, interpreter.biolist([])
+
+      # invoke
+      response = some_object.call(receiver, sender, message, arguments)
+
+      # verify it saw what we sent
+      expect(interpreter.last_message_sent).to eq(
+        receiver:  receiver,
+        sender:    sender,
+        message:   message,
+        arguments: arguments,
+      )
+
+      # return the response so it can be asserted against, if desired
+      response
     end
   end
 
+
   describe 'literals (objects that are created with syntax)' do
-    specify 'can be numbers, objects which represent floats'
-    specify 'can be strings, objects which wrap strings'
+    specify 'can be numbers, objects which represent floats' do
+      type, data = evaluate '123'
+      expect(type).to eq :response
+      expect(data.internal_data).to equal 123.0
+    end
+    specify 'can be strings, objects which wrap strings' do
+      type, data = evaluate '"abc"'
+      expect(type).to eq :response
+      expect(data.internal_data).to equal "abc"
+    end
   end
 
   describe 'expressions' do
@@ -156,6 +220,10 @@ RSpec.describe 'Interpreting Biolangual' do
 
 
 end
+
+# need to talk about finding a message back in a prototype
+    # and it calls another message on this,
+    # which should start lookup on the object
 
 __END__
   do (
