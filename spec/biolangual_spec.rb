@@ -17,10 +17,6 @@ RSpec.describe 'Interpreting Biolangual' do
     Biolangual.parse(code_string)
   end
 
-  def evaluate(code_string)
-    interpreter.evaluate(parse(code_string))
-  end
-
   # TODO: Make a failing test that says to read the names of the tests before trying to pass them
 
   describe 'an object is anything which can be sent a message (passed as an arg to the interpreter\'s `send` method)' do
@@ -40,7 +36,7 @@ RSpec.describe 'Interpreting Biolangual' do
       end
     end
 
-    describe 'returning a `response` or `error` and their associated data' do
+    describe 'resulting in an array of `response` or `error`, and associated data' do
       specify 'a `response`\'s data is an object to be given back to the caller' do
         # a message it should respond to, just returns the object representing false
         response = assert_message_passing message: interpreter.biostring('false')
@@ -82,16 +78,31 @@ RSpec.describe 'Interpreting Biolangual' do
   end
 
 
-  xdescribe 'literals (objects that are created with syntax)' do
+  describe 'evaluate' do
+    it 'takes an ast, and evaluates it, returning the last response' do
+      type, data = interpreter.evaluate(parse('false'))
+      expect(type).to eq :response
+      expect(data).to eq interpreter.false
+    end
+  end
+
+
+  # a helper method so its not as annoying to run code
+  def run(code)
+    ast = parse(code)
+    interpreter.evaluate(ast)
+  end
+
+  describe 'literals (objects that are created with syntax)' do
     specify 'can be numbers, objects which represent floats' do
-      type, data = evaluate '123'
+      type, data = run '123'
       expect(type).to eq :response
       expect(data.internal_data).to equal 123.0
     end
     specify 'can be strings, objects which wrap strings' do
-      type, data = evaluate '"abc"'
+      type, response = run '"abc"'
       expect(type).to eq :response
-      expect(data.internal_data).to equal "abc"
+      expect(response.internal_data).to eq "abc"
     end
   end
 
@@ -228,6 +239,8 @@ end
 # need to talk about finding a message back in a prototype
     # and it calls another message on this,
     # which should start lookup on the object
+
+# better tests on function receiver / sender
 
 __END__
   do (

@@ -20,6 +20,15 @@ Programming languages often stick the word "lang" after them, which would make i
 which is pretty close to bilingual, so fuck it, lets call it "Biolangual"
 
 
+Vague plan
+----------
+
+* Explain the language (maybe show progs)
+* Show them the ASTs
+* Walk them through the first several tests, into evaluate
+* Explain that they should use sa case statement for evaluate
+
+
 Unorganized
 -----------
 
