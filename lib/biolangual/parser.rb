@@ -9,7 +9,8 @@ module Biolangual
   )
 
   def self.parse(code)
-    parse_tree = Parser.new.parse(code)
+    raise ArgumentError, "#{code.inspect} is not a string" unless code.respond_to? :to_str
+    parse_tree = Parser.new.parse(code.to_str)
     parse_tree.to_ast
   end
 end

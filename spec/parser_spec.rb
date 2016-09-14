@@ -18,6 +18,10 @@ RSpec.describe Biolangual do
     end
   end
 
+  it 'raises an error when asked to parse a non-string' do
+    expect { parse 123 }.to raise_error ArgumentError
+  end
+
   describe 'numbers (floats)' do
     specify 'they can be the digits 0 - 9' do
       assert_parses '1234567890', type: :number, value: 1234567890.0
