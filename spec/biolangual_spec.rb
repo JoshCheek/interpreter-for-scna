@@ -13,9 +13,12 @@ RSpec.describe 'Interpreting Biolangual' do
     @interpreter ||= Biolangual::Interpreter.new
   end
 
+  def parse(code)
+    Biolangual.parse(code)
+  end
+
   def run(code)
-    ast = Biolangual.parse(code)
-    interpreter.evaluate!(ast)
+    interpreter.evaluate! parse(code)
    end
 
   # TODO: Make a failing test that says to read the names of the tests before trying to pass them
@@ -104,17 +107,60 @@ RSpec.describe 'Interpreting Biolangual' do
 
   describe 'literals (objects that are created with syntax)' do
     specify 'can be numbers, objects which represent floats' do
-      expect(run('123.4').internal_data).to equal 123.4
+      result = run('123.4')
+      expect(result.internal_data).to equal 123.4
+      expect(result).to eq interpreter.bionum(123.4)
     end
     specify 'can be strings, objects which wrap strings' do
-      expect(run('"abc"').internal_data).to eq "abc"
+      result = run('"abc"')
+      expect(result.internal_data).to eq 'abc'
+      expect(result).to eq interpreter.biostring('abc')
     end
   end
 
+  describe 'execution context' do
+    specify 'there is always an object, the default object is main' do
+      expect(interpreter.current_object).to eq interpreter.main_object
+    end
+
+    context 'the current object is always the last evaluted object' do
+      specify 'for numbers' do
+        run '123'
+        expect(interpreter.current_object).to eq interpreter.bionum(123)
+      end
+
+      specify 'for strings' do
+        run '"abc"'
+        expect(interpreter.current_object).to eq interpreter.biostring("abc")
+      end
+
+      specify 'for messages' do
+        run 'true'
+        expect(interpreter.current_object).to eq interpreter.true
+      end
+
+      specify 'it does not update the default object when there is an error' do
+        type, data = interpreter.evaluate parse('some-bs-message')
+        expect(type).to eq :error
+        expect(interpreter.current_object).to eq interpreter.main_object
+      end
+    end
+  end
+
+
+  # TODO: If we allow dynamic responders, we can do away with the literals (123 becomes a message, and is matched by the responder that looks for messages that are number literals)
+  # then, we can also get rid of the special case for the first arg!
   describe 'expressions' do
-    specify 'can begin with a literal, in which case they evalute to that literal'
-    specify 'can begin with a message, in which case it is sent to the current object (responding will be described later)'
-    specify 'messages after the first are sent to the response of the the expression to their left'
+    specify 'can begin with a literal, in which case they evalute to that literal' do
+      expect(run '123.4').to eq interpreter.bionum(123.4)
+    end
+    specify 'can begin with a message, in which case it is sent to the current object (responding will be described later)' do
+      expect(run 'identity').to equal interpreter.main_object
+    end
+    specify 'messages after the first are sent to the response of the the expression to their left' do
+      expect(run 'true true?').to equal interpreter.true
+      expect(run 'false true?').to equal interpreter.false
+    end
     specify 'when a message is sent to an object that doesn\'t respond to it it raises an error'
   end
 
@@ -143,10 +189,6 @@ RSpec.describe 'Interpreting Biolangual' do
   describe 'Comment is a non-prototypical object' do
     it 'responds to no messages (ie its call method will be different from all the other objects)'
     it 'Comment is the name we give it... if it knows anything of its name, it does not tell us, that would disrupt its duty as a comment'
-  end
-
-  describe 'execution context' do
-    specify 'there is always an object, the default object is main'
   end
 
   describe '`()` is the most important message' do
@@ -208,6 +250,7 @@ RSpec.describe 'Interpreting Biolangual' do
         it 'evalutes the body in the context of the function call, returning the response of its last line'
         # where did we get eval from?
         it 'evalutes to `nil` for an empty object'
+        specify 'the interpreter\'s current object is the function'
       end
     end
   end

@@ -6,9 +6,21 @@ module Biolangual
     def initialize(data)
       @internal_data = data
     end
+
+    def ==(other)
+      internal_data == other.internal_data
+    end
   end
 
   class Interpreter
+    def current_object
+      @current_object ||= main_object
+    end
+
+    def main_object
+      @main_object ||= Object.new
+    end
+
     def number_proto
       @number_proto ||= Object.new
     end
@@ -21,6 +33,10 @@ module Biolangual
       @false ||= Object.new
     end
 
+    def true
+      @true ||= Object.new
+    end
+
     def biostring(ruby_string)
       Wrapper.new(ruby_string)
     end
@@ -29,10 +45,19 @@ module Biolangual
       Wrapper.new(ruby_array)
     end
 
+    def bionum(ruby_num)
+      Wrapper.new(ruby_num.to_f)
+    end
+
     def evaluate!(ast)
       type, data = evaluate(ast)
       return data if type == :response
       raise Error, data
+    end
+
+    def respond_with(object)
+      @current_object = object
+      [:response, object]
     end
 
     def evaluate(ast)
@@ -43,11 +68,23 @@ module Biolangual
         last
       when :message
         # FIXME: string_proto is bs, we should know the caller and receiver
-        call string_proto, string_proto, biostring(ast[:name]), ast[:arguments]
+        response = call(
+          string_proto,
+          string_proto,
+          biostring(ast[:name]),
+          ast[:arguments],
+        )
+
+        # this obviously goes in #call, its here for now b/c call's message passing is bs
+        if response[0] == :response
+          respond_with response[1]
+        else
+          response
+        end
       when :number
-        [:response, biostring(ast[:value])]
+        respond_with bionum(ast[:value])
       when :string
-        [:response, biolist(ast[:value])]
+        respond_with biostring(ast[:value])
       else
         raise "wat: #{ast.inspect}"
       end
@@ -66,10 +103,19 @@ module Biolangual
         arguments: arguments,
       }
 
-      if "some-bs-message" == message.internal_data
+      case message.internal_data
+      when "some-bs-message"
         [:error, "Number does not respond to \"some-bs-message\""]
-      else
+      when "identity"
+        [:response, self.current_object]
+      when 'false'
         [:response, self.false]
+      when 'true'
+        [:response, self.true]
+      when 'true?'
+        [:response, self.current_object]
+      else
+        raise "uhm, impl this for real *rolls eyes* #{message.inspect}"
       end
     end
   end
