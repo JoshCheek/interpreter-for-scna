@@ -1,8 +1,8 @@
-require 'josh_lang'
+require 'biolangual'
 
-RSpec.describe JoshLang do
+RSpec.describe Biolangual do
   def parse(code)
-    JoshLang.parse(code)
+    Biolangual.parse(code)
   end
 
   def assert_parses(code, expected_ast)

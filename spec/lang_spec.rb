@@ -6,9 +6,8 @@
 # side effects:         print_num               | ?
 # Numbers:              zero succ pred is_zero  | we have them
 
-# name: bio?? eh?? (b/c it's heavily inspired by io, and the OO idea only really makes sense in the context of systems like biology)
-
-RSpec.describe 'josh lang' do
+require 'biolangual'
+RSpec.describe 'Interpreting Biolangual' do
   describe 'an object is a function (invoked by the interpreter directly) that implements message passing by' do
     describe 'receiving `receiver`, `sender`, `message`, `arguments`' do
       specify '`receiver`  the object getting the message'

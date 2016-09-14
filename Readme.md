@@ -1,8 +1,27 @@
-Language
-========
+Biolangual
+==========
 
-This all needs to be updated, but I figure its
-worth committing for now :)
+What
+----
+
+An object oriented programming language, created for the purpose of
+learning by implementing its interpreter.
+
+Created for a workshop at [SCNA](http://scna.softwarecraftsmanship.com/events/).
+
+
+The name
+--------
+
+The language is heavily inspired by the programming language [IO](http://iolanguage.org),
+hence the "io" in its name. It is deeply object oriented, which should be a domain more than a paradigm,
+the domain of biology (and many other things), so I stuck a "b" in front of "io" to represent this.
+Programming languages often stick the word "lang" after them, which would make it bio-lang,
+which is pretty close to bilingual, so fuck it, lets call it "Biolangual"
+
+
+Unorganized
+-----------
 
 We're going to make a variant of IO. Why a variant?
 We don't have enough time to adhere to all the real requirements.

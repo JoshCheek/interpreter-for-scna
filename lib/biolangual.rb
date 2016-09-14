@@ -1,7 +1,7 @@
 require 'treetop'
 
 Treetop.load_from_string <<-GRAMMAR
-grammar JoshLangParser
+grammar BiolangualParser
   rule program
     (expression "\\n"*)* {
       def to_ast
@@ -78,11 +78,11 @@ grammar JoshLangParser
 end
 GRAMMAR
 
-module JoshLang
-  Parser = JoshLangParserParser
+module Biolangual
+  Parser = BiolangualParserParser
 
   def self.parse(code)
-    parse_tree = JoshLangParserParser.new.parse(code)
+    parse_tree = BiolangualParserParser.new.parse(code)
     parse_tree.to_ast
   end
 end
