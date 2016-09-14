@@ -13,14 +13,18 @@ RSpec.describe 'Interpreting Biolangual' do
     @interpreter ||= Biolangual::Interpreter.new
   end
 
+  def parse(code_string)
+    Biolangual.parse(code_string)
+  end
+
   def evaluate(code_string)
     interpreter.evaluate(parse(code_string))
   end
 
   # TODO: Make a failing test that says to read the names of the tests before trying to pass them
 
-  describe 'an object is a function (invoked by the interpreter directly) that implements message passing by' do
-    describe 'receiving `receiver`, `sender`, `message`, `arguments`' do
+  describe 'an object is anything which can be sent a message (passed as an arg to the interpreter\'s `send` method)' do
+    describe 'sending a message to an object required' do
       specify '`receiver`  the object getting the message' do
         assert_message_passing receiver: interpreter.number_proto
       end
@@ -36,7 +40,7 @@ RSpec.describe 'Interpreting Biolangual' do
       end
     end
 
-    describe 'returning one of `response` or `error` and their associated data' do
+    describe 'returning a `response` or `error` and their associated data' do
       specify 'a `response`\'s data is an object to be given back to the caller' do
         # a message it should respond to, just returns the object representing false
         response = assert_message_passing message: interpreter.biostring('false')
@@ -45,7 +49,7 @@ RSpec.describe 'Interpreting Biolangual' do
       end
 
       specify 'an `error`\'s data is a description of what went wrong (start with a string)' do
-        assert_message_passing message: interpreter.biostring('some bs message')
+        response = assert_message_passing message: interpreter.biostring('some bs message')
         expect(response[0]).to eq :error
         expect(response[1]).to eq "Number does not respond to \"some bs message\""
       end
@@ -62,7 +66,7 @@ RSpec.describe 'Interpreting Biolangual' do
       arguments = options.fetch :arguments, interpreter.biolist([])
 
       # invoke
-      response = some_object.call(receiver, sender, message, arguments)
+      response = interpreter.call(receiver, sender, message, arguments)
 
       # verify it saw what we sent
       expect(interpreter.last_message_sent).to eq(
@@ -78,7 +82,7 @@ RSpec.describe 'Interpreting Biolangual' do
   end
 
 
-  describe 'literals (objects that are created with syntax)' do
+  xdescribe 'literals (objects that are created with syntax)' do
     specify 'can be numbers, objects which represent floats' do
       type, data = evaluate '123'
       expect(type).to eq :response
@@ -102,7 +106,7 @@ RSpec.describe 'Interpreting Biolangual' do
     specify 'they must respond to `responses` and `prototypes`'
     specify '`responses` is an associative array of strings and their responses'
     specify '`prototypes` is a list of other places to look for responses'
-    specify 'inheritance / message lookup' do
+    describe 'inheritance / message lookup' do
       it 'first looks for the message in the responses'
       it 'then looks for the message in the prototypes, in order'
     end
@@ -173,7 +177,7 @@ RSpec.describe 'Interpreting Biolangual' do
   end
 
   describe 'Function' do
-    specify '() is the constructor' do
+    describe '() is the constructor' do
       it 'clones a new object and sets Function as its only prototype'
       it 'sets `argNames` to all arguments, except the last one'
       it 'sets `body` to the last argument'
