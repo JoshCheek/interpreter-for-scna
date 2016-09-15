@@ -168,7 +168,11 @@ RSpec.describe 'Interpreting Biolangual' do
       expect(run 'true true?').to equal interpreter.true
       expect(run 'false true?').to equal interpreter.false
     end
-    specify 'when a message is sent to an object that doesn\'t respond to it it raises an error'
+    specify 'when a message is sent to an object that doesn\'t respond to it it raises an error' do
+      type, data = interpreter.evaluate parse 'true lolol'
+      expect(type).to eq :error
+      expect(data).to match /lolol/
+    end
   end
 
   describe 'All objects are prototypical unless they explicitly specify otherwise' do
