@@ -2,9 +2,9 @@ module Biolangual
   Error = Class.new RuntimeError
 
   class PrototypicalObject
-    attr_accessor :messages, :prototypes, :inspection
-    def initialize(inspection:nil, messages:{}, prototypes:[])
-      self.inspection, self.messages, self.prototypes = inspection, messages, prototypes
+    attr_accessor :responses, :prototypes, :inspection
+    def initialize(inspection:nil, responses:{}, prototypes:[])
+      self.inspection, self.responses, self.prototypes = inspection, responses, prototypes
     end
 
     def inspect
@@ -12,7 +12,7 @@ module Biolangual
     end
 
     def call(receiver, sender, message, arguments)
-      return messages.fetch message if messages.key? message
+      return responses.fetch message if responses.key? message
       [:error, "#{self} does not respond to #{message}"]
     end
   end
