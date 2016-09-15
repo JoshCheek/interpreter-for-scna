@@ -50,7 +50,7 @@ module Biolangual
 
   class Biolist < Wrapper
     def to_ruby
-      internal_data.map(&:to_ruby)
+      super.map(&:to_ruby)
     end
   end
 

@@ -176,15 +176,27 @@ RSpec.describe 'Interpreting Biolangual' do
   end
 
   describe 'All objects are prototypical unless they explicitly specify otherwise' do
-    specify 'prototypes respond to `responses`, returning an associative array of messages and their responses' do
-      result = run('responses').to_ruby
-      expect(result).to be_a_kind_of Array
-      expect(result.map(&:length).uniq).to eq [2] # key/value pairs
-    end
-    specify '`prototypes` is a list of other places to look for responses' do
-      result = run('prototypes').to_ruby
-      expect(result).to be_a_kind_of Array
-      expect(result).to be_all { |proto| proto.respond_to? :call }
+    describe 'prototypes must have the following responses' do
+      specify '`responses`, returning an associative array with keys being messages and values being responses' do
+        result = run('responses').to_ruby
+        expect(result).to be_a_kind_of Array
+        expect(result.map(&:length).uniq).to eq [2] # key/value pairs
+      end
+      specify '`prototypes` is a list of other places to look for responses' do
+        result = run('prototypes').to_ruby
+        expect(result).to be_a_kind_of Array
+        expect(result).to be_all { |proto| proto.respond_to? :call }
+      end
+      xspecify '`<-` is a function that adds a response to the `receiver`' do
+        expect { run 'lolol' }.to raise_error Biolangual::Error, /lolol/
+        response = run '<-(lolol, 123)'
+        # TODO: Uhm, what does this return?
+        # expect(response).to ??
+        expect(run('lolol').to_ruby).to eq 123.0
+      end
+      specify '`clone` responds with a new object and sets the receiver as its only prototype'
+      specify '`responses` is an associative array of strings and their responses'
+      specify '`prototypes` is a list of other places to look for responses'
     end
     describe 'inheritance / message lookup' do
       it 'first looks for the message in the responses'
@@ -231,14 +243,7 @@ RSpec.describe 'Interpreting Biolangual' do
 
   describe 'Prototype (the root of the prototypical objects)' do
     it 'has no prototypes'
-    describe 'responses' do
-      describe '`<-`'
-        # sets it on the object, regardless of whether its on prototype
-      specify '`<-` responds with a function that will set a message on the `receiver`'
-      specify '`clone` responds with a new object and sets the receiver as its only prototype'
-      specify '`responses` is an associative array of strings and their responses'
-      specify '`prototypes` is a list of other places to look for responses'
-    end
+    it 'is where the prototype interface methods are defined'
 
     describe 'when the response is a function, f1' do
       it 'instead responds with f2, an object cloned from the f1'

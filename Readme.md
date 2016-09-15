@@ -27,6 +27,10 @@ Vague plan
 * Show them the ASTs
 * Walk them through the first several tests, into evaluate
 * Explain that they should use sa case statement for evaluate
+* Theer is not a linear way to implement things, I suspect.
+  Eg: to explain what it means to be a prototypical object, we need to have functions (for `<-`, `clone`, etc).
+  However, a function is a prototypical object. So they must at the very least be implemented in tandem,
+  But that doesn't necessarily allow a linear progression of explanations.
 
 
 Unorganized
