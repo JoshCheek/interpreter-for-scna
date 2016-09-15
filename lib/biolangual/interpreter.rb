@@ -1,10 +1,18 @@
+class Proc
+  # uhm...
+  def to_ruby
+    self
+  end
+end
+
 module Biolangual
   Error = Class.new RuntimeError
 
   class PrototypicalObject
     attr_accessor :responses, :prototypes, :inspection
-    def initialize(inspection:nil, responses:{}, prototypes:[])
+    def initialize(inspection:nil, responses:[], prototypes:[])
       self.inspection, self.responses, self.prototypes = inspection, responses, prototypes
+      yield self if block_given?
     end
 
     def inspect
@@ -12,23 +20,37 @@ module Biolangual
     end
 
     def call(receiver, sender, message, arguments)
-      return responses.fetch message if responses.key? message
-      [:error, "#{self} does not respond to #{message}"]
+      _, body = responses.assoc message
+      return [:error, "#{self} does not respond to #{message}"] unless body
+      body.call receiver, sender, message, arguments
     end
   end
 
-  class Wrapper
+  class Wrapper < PrototypicalObject
     attr_accessor :internal_data
-    def initialize(data)
+    def initialize(data, **keys)
       @internal_data = data
+      super **keys
     end
 
     def to_s
-      "(bio #{internal_data.inspect})"
+      "b.#{internal_data.inspect}"
     end
+
+    alias inspect to_s
 
     def ==(other)
       internal_data == other.internal_data
+    end
+
+    def to_ruby
+      internal_data
+    end
+  end
+
+  class Biolist < Wrapper
+    def to_ruby
+      internal_data.map(&:to_ruby)
     end
   end
 
@@ -38,35 +60,71 @@ module Biolangual
     end
 
     def main_object
-      @main_object ||= PrototypicalObject.new inspection: 'main'
+      # FIXME: callers in these lambdas shouldn't be `this`,
+      # it should have its own function context!
+      # also, this is going to happen a lot, and its super annoying
+      # maybe a helper? (specifically, the needing to turn all of Ruby's objs into biolang objs
+      # here, the string and list
+      @main_object ||= PrototypicalObject.new inspection: 'b.main' do |main|
+        # TODO: `respones` belongs on to Prototype
+        main.responses << [
+          biostring('responses'),
+          lambda do |this, that, message, args|
+            responses = this.responses.map { |pair| biolist(pair) }
+            [:response, biolist(responses)]
+          end,
+        ]
+
+        main.responses << [
+          biostring('prototypes'),
+          lambda do |this, that, message, args|
+            [:response, biolist(this.prototypes)]
+          end,
+        ]
+      end
+    end
+
+    def list_proto
+      @list_proto ||= Biolist.new inspection: 'b.ListProto' do |list|
+        # TODO: clone belongs on PrototypicalObject
+        list.responses << [
+          biostring('clone'),
+          lambda do |this, that, message, args|
+            [ :response,
+              Biolist.new(inspection: 'b.[?...?]', prototypes: [this]),
+            ]
+          end
+        ]
+      end
     end
 
     # FIXME: when we make numbers, they do not get this as the proto,
     # they are instances of Wrapper
     def number_proto
-      @number_proto ||= PrototypicalObject.new inspection: 'Number'
+      @number_proto ||= PrototypicalObject.new inspection: 'b.NumberProto'
     end
 
     # FIXME: when we make strings, they do not get this as the proto,
     # they are instances of Wrapper
     def string_proto
-      @string_proto ||= PrototypicalObject.new inspection: 'String'
+      @string_proto ||= PrototypicalObject.new inspection: 'b.StringProto'
     end
 
     def false
-      @false ||= PrototypicalObject.new inspection: 'false'
+      @false ||= PrototypicalObject.new inspection: 'b.false'
     end
 
     def true
-      @true ||= PrototypicalObject.new inspection: 'false'
+      @true ||= PrototypicalObject.new inspection: 'b.false'
     end
 
     def biostring(ruby_string)
       Wrapper.new(ruby_string)
     end
 
-    def biolist(ruby_array)
-      Wrapper.new(ruby_array)
+    def biolist(array)
+      # FIXME: total bs, should be a clone of the list prototype
+      Biolist.new array
     end
 
     def bionum(ruby_num)
@@ -142,7 +200,7 @@ module Biolangual
 
       # move em all to this
       if receiver.respond_to? :call
-        return receiver.call receiver, sender, message, arguments
+        receiver.call receiver, sender, message, arguments
       else
         raise "uhm, impl this for real *rolls eyes* #{message.inspect}"
       end

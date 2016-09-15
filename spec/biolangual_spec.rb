@@ -176,9 +176,16 @@ RSpec.describe 'Interpreting Biolangual' do
   end
 
   describe 'All objects are prototypical unless they explicitly specify otherwise' do
-    specify 'they must respond to `responses` and `prototypes`'
-    specify '`responses` is an associative array of strings and their responses'
-    specify '`prototypes` is a list of other places to look for responses'
+    specify 'prototypes respond to `responses`, returning an associative array of messages and their responses' do
+      result = run('responses').to_ruby
+      expect(result).to be_a_kind_of Array
+      expect(result.map(&:length).uniq).to eq [2] # key/value pairs
+    end
+    specify '`prototypes` is a list of other places to look for responses' do
+      result = run('prototypes').to_ruby
+      expect(result).to be_a_kind_of Array
+      expect(result).to be_all { |proto| proto.respond_to? :call }
+    end
     describe 'inheritance / message lookup' do
       it 'first looks for the message in the responses'
       it 'then looks for the message in the prototypes, in order'
