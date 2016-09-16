@@ -22,14 +22,15 @@ RSpec.describe 'Interpreting Biolangual' do
           expect(obj.to_s).to eq string_representation
         end
       end
-      has_important_object :nil,               'bioNil'
-      has_important_object :true,              'bioTrue'
-      has_important_object :false,             'bioFalse'
-      has_important_object :main,              'bioMain'
+      has_important_object :RootPrototype,     'RootPrototype'
       has_important_object :StringPrototype,   'StringPrototype'
       has_important_object :NumberPrototype,   'NumberPrototype'
       has_important_object :ListPrototype,     'ListPrototype'
       has_important_object :FunctionPrototype, 'FunctionPrototype'
+      has_important_object :nil,               'bioNil'
+      has_important_object :true,              'bioTrue'
+      has_important_object :false,             'bioFalse'
+      has_important_object :main,              'bioMain'
     end
 
     describe 'key: callstack' do
@@ -59,9 +60,13 @@ RSpec.describe 'Interpreting Biolangual' do
   end
 
   describe 'Prototype, the root of all objects' do
-    it 'has no prototype because it is the root'
-    it 'has the superset of responses, which maps a message to its response'
-    it 'can take a string to give it meaning when you look at it in the host language'
+    let(:proto) { interpreter.state[:RootPrototype] }
+    it 'has no prototype because it is the root' do
+      expect(proto.prototype).to eq nil
+    end
+    it 'has a hash of responses, which maps a message to its response' do
+      expect(proto.responses).to be_a_kind_of Hash
+    end
   end
 
   describe 'Prototype.clone' do

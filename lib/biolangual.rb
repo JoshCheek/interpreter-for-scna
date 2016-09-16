@@ -25,26 +25,30 @@ class Biolangual
   end
 
 
-  class Named
-    def initialize(name)
-      @name = name
+  class PrototypicalObject
+    attr_accessor :prototype, :responses, :name
+    def initialize(prototype:, name: nil, responses: {})
+      self.prototype = prototype
+      self.responses = responses
+      self.name      = name
     end
     def to_s
-      @name
+      name || super
     end
   end
 
   def initial_state
-    bionil            = Named.new('bioNil')
-    bioTrue           = Named.new('bioTrue')
-    bioFalse          = Named.new('bioFalse')
-    bioMain           = Named.new('bioMain')
-    stringPrototype   = Named.new('StringPrototype')
-    numberPrototype   = Named.new('NumberPrototype')
-    listPrototype     = Named.new('ListPrototype')
-    functionPrototype = Named.new('FunctionPrototype')
+    rootPrototype     = PrototypicalObject.new(name: 'RootPrototype',     prototype: nil)
+    stringPrototype   = PrototypicalObject.new(name: 'StringPrototype',   prototype: rootPrototype)
+    numberPrototype   = PrototypicalObject.new(name: 'NumberPrototype',   prototype: rootPrototype)
+    listPrototype     = PrototypicalObject.new(name: 'ListPrototype',     prototype: rootPrototype)
+    functionPrototype = PrototypicalObject.new(name: 'FunctionPrototype', prototype: rootPrototype)
+    bioNil            = PrototypicalObject.new(name: 'bioNil',            prototype: rootPrototype)
+    bioTrue           = PrototypicalObject.new(name: 'bioTrue',           prototype: rootPrototype)
+    bioFalse          = PrototypicalObject.new(name: 'bioFalse',          prototype: rootPrototype)
+    bioMain           = PrototypicalObject.new(name: 'bioMain',           prototype: rootPrototype)
 
-    { nil:               bionil,
+    { nil:               bioNil,
       true:              bioTrue,
       false:             bioFalse,
       main:              bioMain,
@@ -52,6 +56,7 @@ class Biolangual
       NumberPrototype:   numberPrototype,
       ListPrototype:     listPrototype,
       FunctionPrototype: functionPrototype,
+      RootPrototype:     rootPrototype,
       callstack:         [],
     }
   end
