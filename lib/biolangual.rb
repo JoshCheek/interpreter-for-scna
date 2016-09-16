@@ -15,15 +15,6 @@ class Biolangual
   def evaluate(ast)
   end
 
-  def begin_evaluation(ast)
-    state[:callstack].push({
-      ast:      ast,
-      index:    0,
-      context:  state[:main],
-      response: state[:nil],
-    })
-  end
-
   def root_proto
     state.fetch :RootPrototype
   end
@@ -94,7 +85,12 @@ class Biolangual
       ListPrototype:     listPrototype,
       FunctionPrototype: functionPrototype,
       RootPrototype:     rootPrototype,
-      callstack:         [],
+      callstack:         [{
+        ast:      {type: :idle},
+        index:    0,
+        context:  bioMain,
+        response: bioNil,
+      }],
     }
   end
 end

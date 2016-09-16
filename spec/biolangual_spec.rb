@@ -36,23 +36,36 @@ RSpec.describe 'Interpreting Biolangual' do
     describe 'key: callstack' do
       let(:callstack) { interpreter.state[:callstack] }
 
-      it 'is an array of stack frames' do
+      it 'is an array of stack frames, with one frame by default' do
         expect(callstack).to be_a_kind_of Array
       end
 
       describe 'stack frame is a hash with:' do
-        let(:ast) { parse '1' }
-        before { interpreter.begin_evaluation ast }
-        it 'key: ast      the code being evaluated' do
-          expect(callstack[0][:ast]).to eq ast
+        specify 'key: ast      the code being evaluated' do
+          expect(callstack[0]).to have_key :ast
         end
-        it 'key: index    the index it is located at within the ast' do
+        specify 'key: index    the index it is located at within the ast' do
+          expect(callstack[0]).to have_key :index
+        end
+        specify 'key: context  the object the ast is being run on' do
+          expect(callstack[0]).to have_key :context
+        end
+        specify 'key: response the result of the most recent evaluated code' do
+          expect(callstack[0]).to have_key :response
+        end
+      end
+
+      describe 'the initial stack frame' do
+        specify 'the ast is an internal (parser does not emit it) ast of: {type: :idle}' do
+          expect(callstack[0][:ast]).to eq({type: :idle})
+        end
+        specify 'index is 0' do
           expect(callstack[0][:index]).to eq 0
         end
-        it 'key: context  the object the ast is being run on' do
+        specify 'context is main' do
           expect(callstack[0][:context]).to eq interpreter.state[:main]
         end
-        it 'key: response the result of the most recent evaluated code' do
+        specify 'response is nil' do
           expect(callstack[0][:response]).to eq interpreter.state[:nil]
         end
       end
@@ -132,52 +145,54 @@ RSpec.describe 'Interpreting Biolangual' do
       it 'evalutes the body in the context of the function call, returning the response of its last line'
     end
   end
-end
 
-__END__
 
-  describe 'Interpreter#iterate_evaluation' do
-    it 'evaluates the topmost stack frame'
-    context 'evaluating when the index is not past the end of the ast' do
-      context 'when ast type is expressions' do
-        it 'pushes a new stack frame onto the stack with ast: current expression, index: 0, context: current frame\'s context, response: nil'
-        it 'does not increment the index'
-      end
-      context 'when ast type is expression' do
-        it 'pushes a new stack frame onto the stack with ast: current message, index: 0, context: current response, response: nil'
-        it 'does not increment the index'
-      end
-      context 'when ast type is number' do
+  describe 'Interpreter#iterate_evaluation evalutes the topmost stack frame' do
+    context 'when ast type is idle' do
+      it 'does nothing'
+    end
+    context 'when ast type is expression and index is not past the last message' do
+      it 'pushes a new stack frame onto the stack with ast: current context, index: 0, context: current response, response: bio_nil'
+      it 'does not increment the index'
+    end
+    context 'when ast type is expression and index is past the last message' do
+      it 'pops the frame off the stack'
+      it 'increments the index'
+      it 'sets the response to the popped frame\'s response'
+    end
+    context 'when ast type is number' do
+      it 'pops the frame off the stack'
+      it 'increments the index'
+      it 'sets the biolingual representation of the number into the response key'
+    end
+    context 'when ast type is string' do
+      it 'sets the biolingual representation of the string into the response key'
+      it 'increments the index'
+    end
+    context 'when the ast type is message and the index is 1' do
+      it 'pops the frame off the stack'
+      it 'increments the index'
+      it 'sets the popped frame\'s response into the response key'
+    end
+
+    context 'when the ast type is message, it looks up the message\'s name on context and' do
+      context 'when the looked up value is not a function' do
         it 'pops the frame off the stack'
         it 'increments the index'
-        it 'sets the biolingual representation of the number into the response key'
+        it 'sets the looked up value to as the response'
       end
-      context 'when ast type is string' do
-        it 'sets the biolingual representation of the string into the response key'
-        it 'increments the index'
+
+      context 'when the looked up value is a NativeFunction' do
+        # idk, they need some way to talk back and forth
+        # [:continue,
+
+        # describe 'it calls the NativeFunction with' do
+        #   specify 'key: that, set to the parent frame\'s context'
+        #   specify 'key: arguments, set to the ast\'s arguments'
+        #   specify 'key: interpreter,
+        # end
       end
     end
-    context 'when the index is past the end of the ast' do
-      it 'removes the topmost stack frame'
-      it 'sets response in the new top to response from the old top'
-      it 'increments the index in the new top'
-    end
-      context 'when ast type is expression' do
-        context 'when the frame\'s response object is an AstFunction' do
-          it 'puts a new stack frame onto the stack with index: 0, context: the stack frame\'s response, response: nil'
-          it 'sets the new stack frame\'s ast to a prototype of the function'
-          it 'looks up the message on the frame\'s response object'
-        end
-        context 'when the frame\'s response object is an BuiltinFunction' do
-        context 'when the frame\'s response object is not a function' do
-          it 'calls the object with the interpreter state, receiver: frame\'s response, sender: frame\'s context, message: the message\'s name, arguments: the message\'s arguments'
-          it 'sets the response object into the frame\'s response key'
-          it 'increments the index'
-        end
-      end
-19:        {type: :expression, messages: [first.to_ast, *rest_asts]}
-51:        {type: :message, name: '()', arguments: paren_args.to_ast}
-67:        {type: :message, name: text_value, arguments: []}
   end
 
   describe 'Interpreter#eval' do
@@ -195,6 +210,7 @@ __END__
   describe 'String' do
     it 'is the prototype of literal strings'
   end
+end
 
   # Prototype responses:
   #   clone
