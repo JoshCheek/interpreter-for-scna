@@ -1,5 +1,5 @@
-function inspect(obj) {
-  console.dir(obj, {depth: 4, colors: true})
+function p(obj) {
+  console.dir(obj, {depth: 3, colors: true})
 }
 
 module.exports = (function() {
@@ -10,7 +10,13 @@ module.exports = (function() {
     }
 
     evaluate(ast) {
-      inspect(ast)
+      switch(ast.type) {
+        case 'Program':
+          p(ast)
+          break
+        default:
+          console.log(`NEED A CASE FOR ${ast.type} (${Object.keys(ast).join(' ')})`)
+      }
     }
   }
   return Interpreter
