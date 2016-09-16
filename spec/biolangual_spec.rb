@@ -1,12 +1,8 @@
-# TODO: we could get rid of the syntax for multiple expressions with do(expr1, expr2, expr3)
-# where `do` just evaluates each arg in the context of the caller, and returns the last one
-
-# TODO: Disallow multiple expressions, it fks w/ the callstack
 require 'biolangual'
 
 RSpec.describe 'Interpreting Biolangual' do
   def interpreter
-    @interpreter ||= Biolangual::Interpreter.new
+    @interpreter ||= Biolangual.new
   end
 
   def parse(code)
