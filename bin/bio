@@ -10,8 +10,7 @@ var argv     = process.argv.slice(3)
 var code     = read(filename, 'utf8')
 var ast      = esprima.parse(code)
 
-console.dir(ast, {depth: 4, colors: true})
 
-// interpreter = new Interpreter()
-// interpreter.evaluate(ast)
-// process.exit(interpreter.exitStatus)
+var interpreter = new Interpreter()
+interpreter.evaluate(ast)
+process.exit(interpreter.exitStatus)
