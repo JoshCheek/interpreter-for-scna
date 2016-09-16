@@ -1,6 +1,6 @@
 require 'treetop'
 
-module Biolangual
+class Biolangual
   filename = File.expand_path 'parser.treetop', __dir__
   compiler = Treetop::Compiler::GrammarCompiler.new
   Parser   = Module.new.module_eval(

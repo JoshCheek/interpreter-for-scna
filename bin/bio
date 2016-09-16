@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
+require 'biolangual'
+
+program     = File.read ARGV[0]
+ast         = Biolangual.parse(program)
+interpreter = Biolangual.new(
+  stdout: $stdout,
+  argv:   ARGV.drop(1),
+)
+interpreter.evaluate(ast)
+exit interpreter.exit_status
