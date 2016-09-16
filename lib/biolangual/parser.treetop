@@ -1,9 +1,23 @@
 grammar BiolangualParser
+  rule expressions
+    (expression / empty_line)*
+    { def to_ast
+        asts = elements.select { |e| e.respond_to? :to_ast }.map { |e| e.to_ast }
+        if asts.length == 1
+          asts[0]
+        else
+          {type: :expressions, expressions: asts}
+        end
+      end
+    }
+  end
+
   rule expression
     whitespace
     first:(literal / message)
     rest:(whitespace message)*
     whitespace
+    "\n"?
     { def to_ast
         rest_asts = rest.elements.map { |e| e.message.to_ast }
         {type: :expression, messages: [first.to_ast, *rest_asts]}
@@ -52,17 +66,28 @@ grammar BiolangualParser
   end
 
   rule parentheses_message
-    '(' whitespace paren_args whitespace ')'
+    '(' multiline_whitespace ')'
     { def to_ast
-        {type: :message, name: '()', arguments: paren_args.to_ast}
+        {type: :message, name: '()', arguments: []}
+      end
+    }
+    /
+    '(' paren_args ')'
+    { def to_ast
+        {type: :message, name: '()', arguments: paren_args.to_ruby}
       end
     }
   end
 
   rule paren_args
-    (whitespace expression whitespace ','?)*
-    { def to_ast
-        elements.map { |ast| ast.expression.to_ast }
+    left:(expressions whitespace ',')*
+    right:expressions whitespace ','? whitespace
+    { def to_ruby
+        if elements.empty?
+          []
+        else
+          [*left.elements.map(&:expressions), right].map(&:to_ast)
+        end
       end
     }
   end
@@ -76,6 +101,14 @@ grammar BiolangualParser
   end
 
   rule whitespace
+    [ \t]*
+  end
+
+  rule multiline_whitespace
     [ \t\n]*
+  end
+
+  rule empty_line
+    (whitespace "\n")
   end
 end

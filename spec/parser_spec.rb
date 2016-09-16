@@ -115,6 +115,33 @@ RSpec.describe Biolangual do
       assert_parses '( "a" , 2 , 3 )', expected
     end
 
+    it 'allows newlines around the parens and comma delimiters' do
+      expected = {
+        type: :message, name: "()",
+        arguments: [
+          { type: :expression, messages: [{type: :number, value: 1.0}] },
+          { type: :expression, messages: [{type: :number, value: 2.0}] },
+        ]
+      }
+      assert_parses "( \n 1 \n , \n 2 \n )", expected
+    end
+
+    it 'allows multiline expressions within parens' do
+      assert_parses "(\n1 a\n,\n2 b\n)", {
+        type: :message, name: "()",
+        arguments: [
+          { type: :expression, messages: [
+            {type: :number, value: 1.0},
+            {type: :message, name: "a", arguments: []},
+          ] },
+          { type: :expression, messages: [
+            {type: :number, value: 2.0},
+            {type: :message, name: "b", arguments: []},
+          ] },
+        ]
+      }
+    end
+
     it 'can have parens as its arguments' do
       assert_parses '( () , (123))', type: :message, name: "()", arguments: [
         {type: :expression, messages: [{type: :message, name: "()", arguments: []}]},
@@ -170,6 +197,22 @@ RSpec.describe Biolangual do
       assert_parses "1\n",       expected
       assert_parses "1 \n",      expected
       assert_parses "1  \n\n\n", expected
+    end
+  end
+
+
+  describe 'expressions' do
+    it 'is a sequence of newline delimited expressions, ignoring empty lines' do
+      assert_parses "1 a\n\n  \n \n2 b", type: :expressions, expressions: [
+        { type: :expression, messages: [
+          {type: :number, value: 1.0},
+          {type: :message, name: "a", arguments: []},
+        ]},
+        { type: :expression, messages: [
+          {type: :number, value: 2.0},
+          {type: :message, name: "b", arguments: []},
+        ]},
+      ]
     end
   end
 end

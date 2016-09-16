@@ -10,7 +10,16 @@ class Biolangual
 
   def self.parse(code)
     raise ArgumentError, "#{code.inspect} is not a string" unless code.respond_to? :to_str
-    parse_tree = Parser.new.parse(code.to_str)
-    parse_tree.to_ast
+    parser     = Parser.new
+    parse_tree = parser.parse(code.to_str)
+    if parse_tree
+      parse_tree.to_ast
+    else
+      raise "Parsing failed: #{{
+        line:   parser.failure_line,
+        column: parser.failure_column,
+        reason: parser.failure_reason,
+      }.inspect}"
+    end
   end
 end
