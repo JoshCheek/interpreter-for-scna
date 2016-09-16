@@ -2,7 +2,7 @@ require 'biolangual'
 
 RSpec.describe 'Interpreting Biolangual' do
   def interpreter
-    @interpreter ||= Biolangual.new
+    @interpreter ||= Biolangual.new stdout: '', argv: []
   end
 
   def parse(code)
@@ -15,17 +15,46 @@ RSpec.describe 'Interpreting Biolangual' do
 
   # TODO: Make a failing test that says to read the names of the tests before trying to pass them
   describe 'interpreter state is a hash with:' do
-    describe 'key: callstack' do
-      it 'is an array of stack frames'
-      describe 'stack frame is a hash with:' do
-        it 'key: ast      the code being evaluated'
-        it 'key: index    the index it is located at within the ast'
-        it 'key: context  the object the ast is being run on'
-        it 'key: return   the result of the most recent evaluated code'
+    describe 'important objects can be accessed directly and have special names to make implementation output clearer' do
+      def self.has_important_object(key, string_representation)
+        specify "key: #{key} is an important object whose to_s is #{string_representation} (object will be described later)" do
+          obj = interpreter.state.fetch key.to_sym
+          expect(obj.to_s).to eq string_representation
+        end
       end
+      has_important_object :nil,               'bioNil'
+      has_important_object :true,              'bioTrue'
+      has_important_object :false,             'bioFalse'
+      has_important_object :main,              'bioMain'
+      has_important_object :StringPrototype,   'StringPrototype'
+      has_important_object :NumberPrototype,   'NumberPrototype'
+      has_important_object :ListPrototype,     'ListPrototype'
+      has_important_object :FunctionPrototype, 'FunctionPrototype'
     end
-    %w[nil true false main StringPrototype NumberPrototype ListPrototype FunctionPrototype].each do |obj|
-      specify "key: #{obj}"
+
+    describe 'key: callstack' do
+      let(:callstack) { interpreter.state[:callstack] }
+
+      it 'is an array of stack frames' do
+        expect(callstack).to be_a_kind_of Array
+      end
+
+      describe 'stack frame is a hash with:' do
+        let(:ast) { parse '1' }
+        before { interpreter.begin_evaluation ast }
+        it 'key: ast      the code being evaluated' do
+          expect(callstack[0][:ast]).to eq ast
+        end
+        it 'key: index    the index it is located at within the ast' do
+          expect(callstack[0][:index]).to eq 0
+        end
+        it 'key: context  the object the ast is being run on' do
+          expect(callstack[0][:context]).to eq interpreter.state[:main]
+        end
+        it 'key: response the result of the most recent evaluated code' do
+          expect(callstack[0][:response]).to eq interpreter.state[:nil]
+        end
+      end
     end
   end
 
@@ -68,44 +97,46 @@ RSpec.describe 'Interpreting Biolangual' do
       it 'evalutes the body in the context of the function call, returning the response of its last line'
     end
   end
+end
 
+__END__
 
   describe 'Interpreter#iterate_evaluation' do
     it 'evaluates the topmost stack frame'
     context 'evaluating when the index is not past the end of the ast' do
       context 'when ast type is expressions' do
-        it 'pushes a new stack frame onto the stack with ast: current expression, index: 0, context: current frame\'s context, return: nil'
+        it 'pushes a new stack frame onto the stack with ast: current expression, index: 0, context: current frame\'s context, response: nil'
         it 'does not increment the index'
       end
       context 'when ast type is expression' do
-        it 'pushes a new stack frame onto the stack with ast: current message, index: 0, context: current return, return: nil'
+        it 'pushes a new stack frame onto the stack with ast: current message, index: 0, context: current response, response: nil'
         it 'does not increment the index'
       end
       context 'when ast type is number' do
         it 'pops the frame off the stack'
         it 'increments the index'
-        it 'sets the biolingual representation of the number into the return key'
+        it 'sets the biolingual representation of the number into the response key'
       end
       context 'when ast type is string' do
-        it 'sets the biolingual representation of the string into the return key'
+        it 'sets the biolingual representation of the string into the response key'
         it 'increments the index'
       end
     end
     context 'when the index is past the end of the ast' do
       it 'removes the topmost stack frame'
-      it 'sets return in the new top to return from the old top'
+      it 'sets response in the new top to response from the old top'
       it 'increments the index in the new top'
     end
       context 'when ast type is expression' do
-        context 'when the frame\'s return object is an AstFunction' do
-          it 'puts a new stack frame onto the stack with index: 0, context: the stack frame\'s return, return: nil'
+        context 'when the frame\'s response object is an AstFunction' do
+          it 'puts a new stack frame onto the stack with index: 0, context: the stack frame\'s response, response: nil'
           it 'sets the new stack frame\'s ast to a prototype of the function'
-          it 'looks up the message on the frame\'s return object'
+          it 'looks up the message on the frame\'s response object'
         end
-        context 'when the frame\'s return object is an BuiltinFunction' do
-        context 'when the frame\'s return object is not a function' do
-          it 'calls the object with the interpreter state, receiver: frame\'s return, sender: frame\'s context, message: the message\'s name, arguments: the message\'s arguments'
-          it 'sets the response object into the frame\'s return key'
+        context 'when the frame\'s response object is an BuiltinFunction' do
+        context 'when the frame\'s response object is not a function' do
+          it 'calls the object with the interpreter state, receiver: frame\'s response, sender: frame\'s context, message: the message\'s name, arguments: the message\'s arguments'
+          it 'sets the response object into the frame\'s response key'
           it 'increments the index'
         end
       end
@@ -115,9 +146,9 @@ RSpec.describe 'Interpreting Biolangual' do
   end
 
   describe 'Interpreter#eval' do
-    it 'adds a stack frame for context: main, ast: the ast, return: nil, and index: 0'
+    it 'adds a stack frame for context: main, ast: the ast, response: nil, and index: 0'
     it 'calls iterate_evaluation until the index is outside the ast'
-    it 'returns the return object'
+    it 'returns the response object'
   end
 
   describe 'Number' do
