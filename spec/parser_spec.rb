@@ -45,6 +45,22 @@ RSpec.describe Biolangual do
       assert_parses '"abc"',      type: :string, value: "abc"
       assert_parses '"ab 123cz"', type: :string, value: "ab 123cz"
     end
+
+    it 'considers \t to be a tab' do
+      assert_parses '"\t"', type: :string, value: "\t"
+    end
+
+    it 'considers \n to be a newline' do
+      assert_parses '"\n"', type: :string, value: "\n"
+    end
+
+    it 'considers \r to be a carriage return' do
+      assert_parses '"\r"', type: :string, value: "\r"
+    end
+
+    it 'considers \" to be a double quote' do
+      assert_parses '"\""', type: :string, value: '"'
+    end
   end
 
   describe 'parentheses' do
@@ -154,21 +170,6 @@ RSpec.describe Biolangual do
       assert_parses "1\n",       expected
       assert_parses "1 \n",      expected
       assert_parses "1  \n\n\n", expected
-    end
-  end
-
-  describe 'program' do
-    it 'is a sequence of newline delimited expressions', t:true do
-      assert_parses "1 a\n2 b", type: :expressions, expressions: [
-        { type: :expression, messages: [
-          {type: :number, value: 1.0},
-          {type: :message, name: "a", arguments: []},
-        ]},
-        { type: :expression, messages: [
-          {type: :number, value: 2.0},
-          {type: :message, name: "b", arguments: []},
-        ]},
-      ]
     end
   end
 end
