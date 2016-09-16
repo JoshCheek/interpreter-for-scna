@@ -59,6 +59,36 @@ RSpec.describe 'Interpreting Biolangual' do
     end
   end
 
+  describe 'convenience methods' do
+    specify '`root_proto`   returns the RootPrototype' do
+      expect(interpreter.root_proto).to equal interpreter.state.fetch(:RootPrototype)
+    end
+    specify '`string_proto` returns the StringPrototype' do
+      expect(interpreter.string_proto).to equal interpreter.state.fetch(:StringPrototype)
+    end
+    specify '`number_proto` returns the NumberPrototype' do
+      expect(interpreter.number_proto).to equal interpreter.state.fetch(:NumberPrototype)
+    end
+    specify '`list_proto`   returns the ListPrototype' do
+      expect(interpreter.list_proto).to equal interpreter.state.fetch(:ListPrototype)
+    end
+    specify '`fn_proto`     returns the FunctionPrototype' do
+      expect(interpreter.fn_proto).to equal interpreter.state.fetch(:FunctionPrototype)
+    end
+    specify '`bio_nil`      returns bioNil' do
+      expect(interpreter.bio_nil).to equal interpreter.state.fetch(:nil)
+    end
+    specify '`bio_true`     returns bioTrue' do
+      expect(interpreter.bio_true).to equal interpreter.state.fetch(:true)
+    end
+    specify '`bio_false`    returns bioFalse' do
+      expect(interpreter.bio_false).to equal interpreter.state.fetch(:false)
+    end
+    specify '`bio_main`     returns bioMain' do
+      expect(interpreter.bio_main).to equal interpreter.state.fetch(:main)
+    end
+  end
+
   describe 'Prototype, the root of all objects' do
     let(:proto) { interpreter.state[:RootPrototype] }
     it 'has no prototype because it is the root' do
@@ -70,7 +100,7 @@ RSpec.describe 'Interpreting Biolangual' do
   end
 
   describe 'Prototype.clone' do
-    it 'creates a new object and sets its prototype to object'
+    it 'creates a new object and sets its prototype to the cloned object'
   end
 
   describe 'Prototype.lookup' do

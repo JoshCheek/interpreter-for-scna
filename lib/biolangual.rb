@@ -24,6 +24,43 @@ class Biolangual
     })
   end
 
+  def root_proto
+    state.fetch :RootPrototype
+  end
+
+  def string_proto
+    state.fetch :StringPrototype
+  end
+
+  def number_proto
+    state.fetch :NumberPrototype
+  end
+
+  def list_proto
+    state.fetch :ListPrototype
+  end
+
+  def fn_proto
+    state.fetch :FunctionPrototype
+  end
+
+  def bio_nil
+    state.fetch :nil
+  end
+
+  def bio_true
+    state.fetch :true
+  end
+
+  def bio_false
+    state.fetch :false
+  end
+
+  def bio_main
+    state.fetch :main
+  end
+
+
 
   class PrototypicalObject
     attr_accessor :prototype, :responses, :name
