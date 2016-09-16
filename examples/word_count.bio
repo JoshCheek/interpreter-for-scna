@@ -1,0 +1,18 @@
+<-(countWords, fn(str, do(
+  <-(count, 0)
+  <-(words, that eval(str) split(" ")),
+  words each(word,
+    <-(count, count +(1))
+  ),
+  count
+)))
+
+
+if(argv length() > (0), do(
+  <-(text, argv #(0)),
+  stdout print(countWords(text))
+  stdout print("\n")
+)) else (
+  stdout print("You must provide an argument to count\n")
+  exit(1)
+)
