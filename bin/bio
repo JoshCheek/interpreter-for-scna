@@ -1,13 +1,17 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env node
+"use strict"
 
-$LOAD_PATH.unshift File.expand_path('../lib', __dir__)
-require 'biolangual'
+var read        = require('fs').readFileSync
+var esprima     = require('esprima')
+var Interpreter = require('../main')
 
-program     = File.read ARGV[0]
-ast         = Biolangual.parse(program)
-interpreter = Biolangual.new(
-  stdout: $stdout,
-  argv:   ARGV.drop(1),
-)
-interpreter.evaluate(ast)
-exit interpreter.exit_status
+var filename = process.argv[2]
+var argv     = process.argv.slice(3)
+var code     = read(filename, 'utf8')
+var ast      = esprima.parse(code)
+
+console.dir(ast, {depth: 4, colors: true})
+
+// interpreter = new Interpreter()
+// interpreter.evaluate(ast)
+// process.exit(interpreter.exitStatus)
