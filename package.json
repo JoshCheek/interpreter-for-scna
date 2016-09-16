@@ -1,0 +1,23 @@
+{
+  "name": "interpreter-for-scna",
+  "version": "0.0.1",
+  "description": "Mini interpreter for SCNA",
+  "main": "main.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [],
+  "author": "Josh Cheek",
+  "license": "ISC",
+  "dependencies": {
+    "esprima": "2.6.0"
+  },
+  "devDependencies": {
+    "chai": "3.5.0",
+    "mocha": "2.4.5"
+  }
+}
+
