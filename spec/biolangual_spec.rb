@@ -148,9 +148,22 @@ RSpec.describe 'Interpreting Biolangual' do
 
 
   describe 'Interpreter#iterate_evaluation evalutes the topmost stack frame' do
-    context 'when ast type is idle' do
-      it 'does nothing'
+    def callstack
+      interpreter.state.fetch :callstack
     end
+
+    context 'when ast type is idle' do
+      xit 'does nothing' do
+        interpreter.iterate_evaluation
+        expect(callstack).to eq [{
+          ast:      {type: :idle},
+          index:    0,
+          context:  interpreter.bioMain,
+          response: interpreter.bioNil,
+        }]
+      end
+    end
+
     context 'when ast type is expression and index is not past the last message' do
       it 'pushes a new stack frame onto the stack with ast: current context, index: 0, context: current response, response: bio_nil'
       it 'does not increment the index'
@@ -166,6 +179,7 @@ RSpec.describe 'Interpreting Biolangual' do
       it 'sets the biolingual representation of the number into the response key'
     end
     context 'when ast type is string' do
+      it 'pops the frame off the stack'
       it 'sets the biolingual representation of the string into the response key'
       it 'increments the index'
     end
@@ -175,22 +189,25 @@ RSpec.describe 'Interpreting Biolangual' do
       it 'sets the popped frame\'s response into the response key'
     end
 
-    context 'when the ast type is message, it looks up the message\'s name on context and' do
-      context 'when the looked up value is not a function' do
-        it 'pops the frame off the stack'
-        it 'increments the index'
-        it 'sets the looked up value to as the response'
-      end
+    context 'when the ast type is message, and the index is 0' do
+      describe 'it looks up the message\'s name on context and' do
+        context 'when the looked up value is not a function' do
+          it 'pops the frame off the stack'
+          it 'increments the index'
+          it 'sets the looked up value to as the response'
+        end
 
-      context 'when the looked up value is a NativeFunction' do
-        # idk, they need some way to talk back and forth
-        # [:continue,
+        context 'when the looked up value is a NativeFunction' do
+          # idk, they need some way to talk back and forth
+          # [:continue,
 
-        # describe 'it calls the NativeFunction with' do
-        #   specify 'key: that, set to the parent frame\'s context'
-        #   specify 'key: arguments, set to the ast\'s arguments'
-        #   specify 'key: interpreter,
-        # end
+          # describe 'it calls the NativeFunction with' do
+          #   specify 'key: that, set to the parent frame\'s context'
+          #   specify 'key: arguments, set to the ast\'s arguments'
+          #   specify 'key: interpreter,
+          # end
+        end
+        # it needs to blow up if there are args
       end
     end
   end
