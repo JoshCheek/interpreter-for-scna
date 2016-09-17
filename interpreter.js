@@ -149,6 +149,7 @@ module.exports = (function() {
 
     EvalBinaryExpression(ast) {
       let operator = ast.operator
+      let result
       if(operator === "+") {
         p(ast)
         throw("EvalBinaryExpression")
@@ -164,6 +165,7 @@ module.exports = (function() {
       } else {
         throw `Add a binary operator for: ${operator}`
       }
+      this.setReturn(result)
     }
 
     EvalIfStatement(ast) {
