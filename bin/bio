@@ -1,21 +1,24 @@
 #!/usr/bin/env node
 "use strict"
 
-var read        = require('fs').readFileSync
-var esprima     = require('esprima')
-var Interpreter = require('../main')
-
-var filename = process.argv[2]
-var argv     = process.argv.slice(3)
-var code     = read(filename, 'utf8')
-var ast      = esprima.parse(code)
+let read        = require('fs').readFileSync
+let esprima     = require('esprima')
+let Interpreter = require('../main')
 
 
-var interpreter = new Interpreter({
-  argv: argv,
-})
-function p(obj) {
-  console.dir(obj, {depth: 5, colors: true})
+
+let printResult = process.argv.includes('-p')
+let argv        = process.argv.filter(arg => arg !== '-p')
+argv.shift() // path to node
+
+let filename    = argv[1]
+let code        = read(filename, 'utf8')
+let ast         = esprima.parse(code)
+let interpreter = new Interpreter({argv: argv})
+let result      = interpreter.evaluate(ast)
+
+if(printResult) {
+  console.dir(result, {depth: 4, colors: true})
 }
-p(interpreter.evaluate(ast))
+
 process.exit(interpreter.exitStatus)
