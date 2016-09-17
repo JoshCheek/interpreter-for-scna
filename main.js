@@ -1,3 +1,7 @@
+// Can we see `this` from the caller?
+// or set it in the evalMemberFunction?
+
+
 // TODO: vars should be looked up in the enclosing lexical scope,
 // NOT!!! earlier in the callstack
 "use strict"
@@ -20,13 +24,6 @@ module.exports = (function() {
     }
   }
 
-  class NativeFunction {
-    constructor(name, body) {
-    }
-    invoke() {
-    }
-  }
-
   class Interpreter {
     constructor(deps) {
       this.bionull = {
@@ -38,9 +35,17 @@ module.exports = (function() {
       const argv = {
         name: 'argv',
         bioprops: {
-          slice: new NativeFunction('slice', function() {
-            throw("how do we get whatever we need?")
-          })
+          slice: {
+            type:         'function',
+            functionType: 'native',
+            name:         'slice',
+            body:         function(callee, args) {
+              const ary    = callee.data
+              const idx    = args[0].value
+              const sliced = ary.slice(idx)
+              return {bioprops:{}, data: sliced}
+            },
+          }
         },
         data: realArgv
       }
@@ -130,22 +135,33 @@ module.exports = (function() {
     }
 
     evalFnExpr(ast) {
-      this.setReturn(new AstFunction(
-        extractName(ast.id),
-        ast.params,
-        ast.body
-      ))
+      this.setReturn({
+        name:         extractName(ast.id),
+        type:         'function',
+        functionType: 'ast',
+        ast:          ast.body,
+        params:       ast.params,
+      })
     }
 
     evalCallExpr(ast) {
       const fn   = this.evaluate(ast.callee)
       const args = ast.arguments.map(arg => this.evaluate(arg))
-      p({
-        fn:   fn,
-        args: args,
-      })
-      throw("!!")
-      this.setReturn(fn.invoke(args))
+      if(fn.functionType === 'nst') {
+        throw("handle ast functions")
+      } else if (fn.functionType === 'native') {
+        const callee = fn.callee || this.bioglobal
+        const result = fn.body(callee, args)
+        // p({
+        //   callee: callee,
+        //   result: result,
+        //   args:   args,
+        //   fn:     fn.__proto__,
+        // })
+        this.setReturn(result)
+      } else {
+        throw `Uhhh wat?`
+      }
     }
 
     evalMemberExpr(ast) {
@@ -153,9 +169,16 @@ module.exports = (function() {
       // we should look it up in locals
       // then in scopes
       // then in global
+      // p({
+      //   when: "BEFORE EVALING MEMBER EXPR",
+      // })
       const obj  = this.evaluate(ast.object)
       const name = ast.property.name
-      const prop = obj.bioprops[name]
+      let   prop = obj.bioprops[name]
+      if(prop.type === 'function') {
+        prop = Object.create(prop)
+        prop.callee = obj
+      }
       this.setReturn(prop)
     }
 
