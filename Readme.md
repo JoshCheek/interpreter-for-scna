@@ -47,3 +47,13 @@ Run repeatedly, stopping after the first failure.
 $ npm run test_progression
 ```
 
+
+Running your interpreter
+------------------------
+
+The `-p` flag, we're using to have it print the result out (similar but not the same as node)
+So you can see intermediate bits by running it against a file, using this flag.
+
+```
+$ bin/jss -p examples/1_number.js
+```
