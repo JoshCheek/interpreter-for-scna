@@ -2,7 +2,7 @@
   "name": "interpreter-for-scna",
   "version": "0.0.1",
   "description": "Mini interpreter for SCNA",
-  "main": "main.js",
+  "main": "interpreter.js",
   "directories": {
     "example": "examples"
   },

@@ -3,7 +3,7 @@
 
 let read        = require('fs').readFileSync
 let esprima     = require('esprima')
-let Interpreter = require('../main')
+let Interpreter = require('../interpreter')
 
 
 
