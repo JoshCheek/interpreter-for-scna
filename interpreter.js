@@ -143,11 +143,12 @@ module.exports = (function() {
     }
 
     EvalExpressionStatement(ast) {
-      p(ast)
-      throw("EvalExpressionStatement")
+      const returned = this.evaluate(ast.expression)
+      this.setReturn(returned)
     }
 
     EvalBinaryExpression(ast) {
+      let operator = ast.operator
       if(operator === "+") {
         p(ast)
         throw("EvalBinaryExpression")
