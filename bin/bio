@@ -11,6 +11,11 @@ var code     = read(filename, 'utf8')
 var ast      = esprima.parse(code)
 
 
-var interpreter = new Interpreter()
-interpreter.evaluate(ast)
+var interpreter = new Interpreter({
+  argv: argv,
+})
+function p(obj) {
+  console.dir(obj, {depth: 5, colors: true})
+}
+p(interpreter.evaluate(ast))
 process.exit(interpreter.exitStatus)
