@@ -116,6 +116,9 @@ module.exports = (function() {
         case 'ExpressionStatement':
           this.evalExpressionStatement(ast)
           break
+        case 'BinaryExpression':
+          this.evalBinaryExpr(ast)
+          break
         default:
           throw(`NEED A CASE FOR "${ast.type}" (${Object.keys(ast).join(' ')})`)
       }
@@ -213,19 +216,42 @@ module.exports = (function() {
       this.setReturn(result)
     }
 
+    evalBinaryExpr(ast) {
+      const operator = ast.operator
+      const left     = this.evaluate(ast.left)
+      const right    = this.evaluate(ast.right)
+      if(operator === "+") {
+        const result = left.value + right.value
+        this.setReturn({type: "number", value: result})
+      } else if(operator === "<") {
+        const result = left.value < right.value
+        this.setReturn({type: "boolean", value: result})
+      } else if(operator === ">") {
+        const result = left.value > right.value
+        this.setReturn({type: "boolean", value: result})
+      } else if(operator === "===") {
+        const result = left.value === right.value
+        this.setReturn({type: "boolean", value: result})
+      } else {
+        throw `Add a binary operator for: ${operator}`
+      }
+    }
+
     evalLiteral(ast) {
+      let result
       if(typeof ast.value === "boolean") {
-        this.setReturn({type: "boolean", value: ast.value})
+        result = {type: "boolean", value: ast.value}
       } else if(typeof ast.value === "number") {
-        this.setReturn({type: "number", value: ast.value})
+        result = {type: "number", value: ast.value}
       } else if(typeof ast.value === "string") {
-        this.setReturn({type: "string", value: ast.value})
+        result = {type: "string", value: ast.value}
       } else if(ast.value === null) {
-        this.setReturn({type: "null", value: null})
+        result = {type: "null", value: null}
       } else {
         p(ast)
         throw(`Whut? ${ast}`)
       }
+      this.setReturn(result)
     }
 
     evalExpressionStatement(ast) {

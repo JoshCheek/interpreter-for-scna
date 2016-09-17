@@ -29,14 +29,25 @@ describe('Interpreter', function() {
       interprets({in: "null", out: {type: "null", value: null}})
     })
   })
-})
 
-// // number operators
-// "1 + 2"
-// "1 < 2"
-// "1 > 2"
-// "1 === 1"
-// "1 === 2"
+  describe('interprets simple math equations', function() {
+    specify('addition', function() {
+      interprets({in: "1+2", out: {type: "number", value: 3}})
+    })
+    specify('less than', function() {
+      interprets({in: "1<2", out: {type: "boolean", value: true}})
+      interprets({in: "2<1", out: {type: "boolean", value: false}})
+    })
+    specify('greater than', function() {
+      interprets({in: "1>2", out: {type: "boolean", value: false}})
+      interprets({in: "2>1", out: {type: "boolean", value: true}})
+    })
+    specify('comparison', function() {
+      interprets({in: "1 === 2", out: {type: "boolean", value: false}})
+      interprets({in: "2 === 2", out: {type: "boolean", value: true}})
+    })
+  })
+})
 
 // // start getting a stack
 // "var a = 1"
