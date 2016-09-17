@@ -215,16 +215,13 @@ module.exports = (function() {
 
     evalLiteral(ast) {
       if(typeof ast.value === "boolean") {
-        p(ast)
-        throw("do smth")
+        this.setReturn({type: "boolean", value: ast.value})
       } else if(typeof ast.value === "number") {
-        this.setReturn({ type: "number", value: ast.value })
+        this.setReturn({type: "number", value: ast.value})
       } else if(typeof ast.value === "string") {
-        p(ast)
-        throw("do smth")
+        this.setReturn({type: "string", value: ast.value})
       } else if(ast.value === null) {
-        p(ast)
-        throw("do smth")
+        this.setReturn({type: "null", value: null})
       } else {
         p(ast)
         throw(`Whut? ${ast}`)

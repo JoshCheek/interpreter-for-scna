@@ -13,14 +13,21 @@ function interprets(opts) {
 
 describe('Interpreter', function() {
   describe('interprets simple primitives', function() {
-    it('numbers', function() {
+    specify('numbers', function() {
       interprets({in: "1", out: {type: "number", value: 1}})
     })
-
-    // "'a'"
-    // "true"
-    // "false"
-    // "nil"
+    specify('strings', function() {
+      interprets({in: "'a'", out: {type: "string", value: "a"}})
+    })
+    specify('true', function() {
+      interprets({in: "true", out: {type: "boolean", value: true}})
+    })
+    specify('false', function() {
+      interprets({in: "false", out: {type: "boolean", value: false}})
+    })
+    specify('null', function() {
+      interprets({in: "null", out: {type: "null", value: null}})
+    })
   })
 })
 
