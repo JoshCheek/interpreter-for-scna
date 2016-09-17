@@ -1,0 +1,94 @@
+What are we doing?
+  Building a JavaScript interpreter
+  It's common amongst us all
+  The other idea I had turned out to be too complex
+
+
+Why?
+  Remove the magic that makes languages difficult to reason about
+  Gain deep insights into the languages we use
+    The interpreter is the definition of the language (in practice)
+  It's fun!
+
+
+Who am I?
+  Josh Cheek
+  Veteran for a bit
+  Consulted for a bit
+  Instructor for a bit
+  
+  Might know me from Ruby: Seeing Is Believing or the Pry video
+
+
+Why am I qualified to teach this?
+  ehhhh.....
+  I'm just playing around to figure it out
+  like all the rest of us ^_^
+
+
+What is an interpreter?
+  A program that implements a programming language
+  
+  In our case, a program that will:
+    * Parse a program into a data structure
+    * Traverse that data structure
+    * Manipulate internal state based on the traversal
+    * Interact with the machine at the appropriate times
+
+
+!Setup
+  Find a pair who is comfortable with JS
+  Clone github.com/JoshCheek/interpreter-for-scna
+  Install deps
+  Run tests
+
+  
+Parsing
+  String -> AST (Abstract Syntax Tree)
+
+  A tree structure that represents syntax
+  But discards syntactic noise
+  (eg the individual digits of a number)
+
+  Try running `esparse examples/primitive_number.js`
+  (pipe it through `jq .` for highlighting)
+
+
+Switching 
+
+Iterating over the structure
+  It's a tree, so the same way you would any other tree:
+  from a node, iterate over each of its children in some order
+  (usually left to right)
+
+  For us, each node will have its own rules,
+  we'll use its type to figure out which
+  the `evaluate` method will have a case for each possible type
+
+
+
+
+Updating state
+  State is data that can change
+
+  For some nodes, like an assignment,
+  we will want to update some state.
+  In that case, the local variables of a function.
+  
+
+
+  As far as I can tell, there are three structures that allow JavaScript to work
+  
+  Have you ever written programs like:
+    examples/function_scope.js
+    examples/prototypical_inheritance.js
+  
+  Then you were experimenting on the interpreter.
+
+
+Conventions
+  objects will be simple JS objects
+  We'll give each one a type
+  Types are: number, string, boolean, nil, object, array
+
+  Based on the type, we'll expect other keys to be set,
