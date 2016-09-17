@@ -31,42 +31,44 @@ module.exports = (function() {
     constructor(deps) {
       this.bionull = {
         name: 'null',
-        bioprops: {}
+        jsprops: {}
       }
 
-      const realArgv = deps.argv
       const argv = {
         name: 'argv',
-        bioprops: {
+        type: 'array',
+        value: deps.argv.map(s => ({type: 'string', value: s})),
+        jsprops: {
           slice: {
             type:         'function',
             functionType: 'native',
             name:         'slice',
             body:         function(callee, args) {
-              const ary    = callee.data
+              const ary    = callee.value
               const idx    = args[0].value
               const sliced = ary.slice(idx)
-              return {bioprops:{}, data: sliced}
+              return {jsprops:{}, value: sliced}
             },
           }
         },
-        data: realArgv
       }
-      const bioprocess = {
+      const jsprocess = {
         name: 'process',
-        bioprops: {
+        type: 'object',
+        jsprops: {
           argv: argv // should this be wrapped in one of our objects?
         }
       }
-      this.bioglobal = {
+      this.jsglobal = {
         name: 'global',
-        bioprops: {
-          process: bioprocess,
+        type: 'object',
+        jsprops: {
+          process: jsprocess,
         }
       }
-      this.bioglobal.bioprops['global'] = this.bioglobal
+      this.jsglobal.jsprops.global = this.jsglobal
       this.callstack = [{
-        self:   this.bioglobal,
+        self:   this.jsglobal,
         vars:   {},
         result: this.bionull,
       }]
@@ -146,7 +148,11 @@ module.exports = (function() {
     evalVarDeclaration(ast) {
       const name  = extractName(ast.id)
       const value = this.evaluate(ast.init)
-      this.frame().vars[name] = value
+      if(this.callstack.length === 1) {
+        this.jsglobal.jsprops[name] = value
+      } else {
+        this.frame().vars[name] = value
+      }
     }
 
     evalFnExpr(ast) {
@@ -165,7 +171,7 @@ module.exports = (function() {
       if(fn.functionType === 'nst') {
         throw("handle ast functions")
       } else if (fn.functionType === 'native') {
-        const callee = fn.callee || this.bioglobal
+        const callee = fn.callee || this.jsglobal
         const result = fn.body(callee, args)
         // p({
         //   callee: callee,
@@ -189,7 +195,7 @@ module.exports = (function() {
       // })
       const obj  = this.evaluate(ast.object)
       const name = ast.property.name
-      let   prop = obj.bioprops[name]
+      let   prop = obj.jsprops[name]
       if(prop.type === 'function') {
         prop = Object.create(prop)
         prop.callee = obj
@@ -208,7 +214,7 @@ module.exports = (function() {
         result = frame.vars[name]
         if(result) break
       }
-      if(!result) result = this.bioglobal.bioprops[name]
+      if(!result) result = this.jsglobal.jsprops[name]
       if(!result) result = this.bionull
       // console.log(">>>>>>>>>>>>>>>>>>")
       // p({

@@ -3,12 +3,20 @@
 const assert      = require('chai').assert;
 const Interpreter = require('../interpreter.js')
 
+function buildInterpreter(opts={}) {
+  let argv = opts.argv || []
+  return new Interpreter({argv: argv})
+}
+
 function interprets(opts) {
   let input       = opts.in
   let expected    = opts.out
-  let interpreter = new Interpreter({argv: []})
+  let interpreter = buildInterpreter(opts)
   let actual      = interpreter.evalCode(input)
-  assert.deepEqual(actual, expected)
+
+  for(let name in expected) {
+    assert.deepEqual(actual[name], expected[name])
+  }
 }
 
 describe('Interpreter', function() {
@@ -88,11 +96,81 @@ describe('Interpreter', function() {
       interprets({in: "var a=1; if(2 === 2) { a = 2 } else { a = 3 }; a", out: {type: "number", value: 2}})
     })
   })
-})
 
-// // looking up objs
-// "process"
-// "process.argv"
+  describe('the global object', function() {
+    it('is accessible at the toplevel of the interpreter', function() {
+      const global = buildInterpreter().jsglobal
+      assert.equal(typeof global, "object")
+    })
+
+    it('has the type "object"', function() {
+      const global = buildInterpreter().jsglobal
+      assert.equal(global.type, "object")
+    })
+
+    it('has jsprops to store its properties', function() {
+      const global = buildInterpreter().jsglobal
+      assert.equal(typeof global.jsprops, "object")
+    })
+
+    specify('one of its properties is "global", which returns itself', function() {
+      const global = buildInterpreter().jsglobal
+      assert.deepEqual(global.jsprops.global, global)
+    })
+
+    specify('one of its properties is "process", which returns another object', function() {
+      const global  = buildInterpreter().jsglobal
+      const process = global.jsprops.process
+      assert.equal(process.type, "object")
+    })
+
+    specify('process contains another variable, `argv`, which is an array wrapping argv', function() {
+      const interp = new Interpreter({argv: []})
+      const argv   = interp.jsglobal.jsprops.process.jsprops.argv
+      assert.equal(argv.type, "array")
+      assert.deepEqual(argv.value, [])
+    })
+
+    specify('argv\'s args are internal strings', function() {
+      const interp = new Interpreter({argv: ['arg1', 'arg2']})
+      assert.deepEqual(interp.jsglobal.jsprops.process.jsprops.argv.value, [
+        {type: "string", value: 'arg1'},
+        {type: "string", value: 'arg2'},
+      ])
+    })
+  })
+
+  describe('slightly more interesting variable lookup', function() {
+    specify('when a variable can\'t be found, it is looked up on the global object', function() {
+      const interp = buildInterpreter()
+      let result
+
+      result = interp.evalCode("global")
+      assert.equal(result, interp.jsglobal)
+
+      result = interp.evalCode("process")
+      assert.equal(result, interp.jsglobal.jsprops.process)
+    })
+
+    specify('when a variable is set at the toplevel, it is saved on the global object', function() {
+      const interp = buildInterpreter()
+      interp.evalCode("var a = 1")
+      assert.deepEqual(interp.jsglobal.jsprops.a, {type: "number", value: 1})
+    })
+
+    it('looks up successive property invocations on the result of the previous one', function() {
+      interprets({
+        argv: ['a'],
+        in: "process.argv",
+        out: {
+          type: 'array',
+          value: [{type: 'string', value: 'a'}]
+        },
+      })
+    })
+  })
+
+})
 
 // // native functions
 // "process.argv.slice(1)"
