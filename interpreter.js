@@ -90,7 +90,7 @@ module.exports = (function() {
           const ary    = callee.value
           const idx    = args[0].value
           const sliced = ary.slice(idx)
-          return {jsprops:{}, value: sliced}
+          return { type: 'array', jsprops:{}, value: sliced }
         },
       }
 

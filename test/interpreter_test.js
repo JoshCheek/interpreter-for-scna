@@ -162,19 +162,29 @@ describe('Interpreter', function() {
       interprets({
         argv: ['a'],
         in: "process.argv",
-        out: {
-          type: 'array',
-          value: [{type: 'string', value: 'a'}]
-        },
+        out: { type: 'array', value: [{type: 'string', value: 'a'}] },
       })
     })
   })
 
-})
+  describe('native function invocation', function() {
+    it('can slice argv', function() {
+      interprets({
+        argv: ['a', 'b', 'c'],
+        in: "process.argv.slice(1)",
+        out: { type: 'array', value: [{type: 'string', value: 'b'}, {type: 'string', value: 'c'}] },
+      })
+      interprets({
+        argv: ['a', 'b', 'c'],
+        in: "process.argv.slice(2)",
+        out: { type: 'array', value: [{type: 'string', value: 'c'}] },
+      })
+    })
+  })
 
+
+})
 // // native functions
-// "process.argv.slice(1)"
-// "process.argv.slice(2)"
 // "console"
 // "console.log('hello')"
 
