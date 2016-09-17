@@ -78,13 +78,6 @@ module.exports = (function() {
     }
 
     evaluate(ast) {
-      // const toPrint = {
-      //   ast: ast.type,
-      //   ret: this.currentResult(),
-      // }
-      // if(ast.id)
-      //   toPrint.name = extractName(ast.id)
-      // p(toPrint)
       switch(ast.type) {
         case 'Program':
           ast.body.forEach(child => this.evaluate(child))
@@ -119,11 +112,22 @@ module.exports = (function() {
         case 'BinaryExpression':
           this.evalBinaryExpr(ast)
           break
+        case 'IfStatement':
+          this.evalIfStatement(ast)
+          break
+        case 'AssignmentExpression':
+          this.evalAssignmentExpr(ast)
+          break
+        case 'BlockStatement':
+          this.evalBlockStatement(ast)
+          break
+        case 'EmptyStatement':
+          this.evalEmptyStatement(ast)
+          break
         default:
           throw(`NEED A CASE FOR "${ast.type}" (${Object.keys(ast).join(' ')})`)
       }
       // for convenience
-      // p({ast: ast.type, result: this.currentResult()})
       return this.currentResult()
     }
 
@@ -258,11 +262,37 @@ module.exports = (function() {
       const expr = this.evaluate(ast.expression)
       this.setReturn(expr)
     }
+
+    evalIfStatement(ast) {
+      const condition = this.evaluate(ast.test)
+      if(condition.value) {
+        this.setReturn(this.evaluate(ast.consequent))
+      } else if(ast.alternate) {
+        this.setReturn(this.evaluate(ast.alternate))
+      }
+    }
+
+    evalAssignmentExpr(ast) {
+      // { type: 'AssignmentExpression',
+      //   operator: '=',
+      //   left: { type: 'Identifier', name: 'a' },
+      //   right: { type: 'Literal', value: 2, raw: '2' } }
+      const name  = extractName(ast.left)
+      const value = this.evaluate(ast.right)
+      this.frame().vars[name] = value
+    }
+
+    evalEmptyStatement(ast) {
+    }
+
+    evalBlockStatement(ast) {
+      ast.body.forEach(expr => this.evaluate(expr))
+    }
   }
 
-  function extractName(ast) {
-    if(!ast) return null
-    return ast.name
+  function extractName(identifierAst) {
+    if(!identifierAst) return null
+    return identifierAst.name
   }
 
   return Interpreter

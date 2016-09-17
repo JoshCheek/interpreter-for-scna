@@ -47,18 +47,48 @@ describe('Interpreter', function() {
       interprets({in: "2 === 2", out: {type: "boolean", value: true}})
     })
   })
+
+  describe('simple variables', function() {
+    it('can set and get a variable at the toplevel', function() {
+      interprets({in: "var a = 1; a", out: {type: "number", value: 1}})
+    })
+    it('can use the variable in a more complex expression', function() {
+      interprets({in: "var a = 1; a+a", out: {type: "number", value: 2}})
+    })
+    it('can set a variable it has previously set', function() {
+      interprets({in: "var a = 1; a = 2; a+a", out: {type: "number", value: 4}})
+    })
+  })
+
+  describe('grouping statements with a block', function() {
+    it('evaluates each expression, resulting in the last', function() {
+      interprets({in: "{var a = 1; var b = 2; a+b}", out: {type: "number", value: 3}})
+    })
+  })
+
+  describe('if statements', function() {
+    it('evaluates the body when the condition is true', function() {
+      interprets({in: "var a=1; if(true) a = 2; a", out: {type: "number", value: 2}})
+    })
+
+    it('does not evaluate the body when the condition is false', function() {
+      interprets({in: "var a=1; if(false) a = 2; a", out: {type: "number", value: 1}})
+    })
+
+    it('ignores the else clause when the condition is true', function() {
+      interprets({in: "var a=1; if(true) { a = 2 } else { a = 3 }; a", out: {type: "number", value: 2}})
+    })
+
+    it('evalues the else clause when the condition is true', function() {
+      interprets({in: "var a=1; if(false) { a = 2 } else { a = 3 }; a", out: {type: "number", value: 3}})
+    })
+
+    it('can handle complex conditionals', function() {
+      interprets({in: "var a=1; if(1 === 2) { a = 2 } else { a = 3 }; a", out: {type: "number", value: 3}})
+      interprets({in: "var a=1; if(2 === 2) { a = 2 } else { a = 3 }; a", out: {type: "number", value: 2}})
+    })
+  })
 })
-
-// // start getting a stack
-// "var a = 1"
-// "var a = 1; a"
-// "var a = 1; a + a"
-
-// // if statements
-// "var a=1; if(true) a = 2"
-// "var a=1; if(false) a = 2"
-// "var a=1; if(1 === 1) { a = 2 } else { a = 3 }"
-// "var a=1; if(1 === 2) { a = 2 } else { a = 3 }"
 
 // // looking up objs
 // "process"
