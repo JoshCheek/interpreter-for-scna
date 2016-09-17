@@ -5,9 +5,11 @@ What are we doing?
 
 
 Why?
-  Remove the magic that makes languages difficult to reason about
+  Remove the magic that makes languages 
+    difficult to reason about
   Gain deep insights into the languages we use
-    The interpreter is the definition of the language (in practice)
+    The interpreter is the definition of the language
+    (in practice)
   It's fun!
 
 
@@ -17,7 +19,8 @@ Who am I?
   Consulted for a bit
   Instructor for a bit
   
-  Might know me from Ruby: Seeing Is Believing or the Pry video
+  Might know me from Ruby:
+    Seeing Is Believing or the Pry video
 
 
 Why am I qualified to teach this?
@@ -38,9 +41,13 @@ What is an interpreter?
 
 !Setup
   Find a pair who is comfortable with JS
-  Clone github.com/JoshCheek/interpreter-for-scna
+  $ git clone github.com/JoshCheek/interpreter-for-scna
+
   Install deps
+  $ npm install
+
   Run tests
+  $ npm run test_progression
 
   
 Parsing
@@ -54,12 +61,14 @@ Parsing
   (pipe it through `jq .` for highlighting)
 
 
-Switching 
+!Switching on type
+  notice the type corresponds to a case in the statement
+  lets run the tests and work our way through the primitives
 
 Iterating over the structure
-  It's a tree, so the same way you would any other tree:
-  from a node, iterate over each of its children in some order
-  (usually left to right)
+  It's a tree, so iterate the same way as any other tree:
+  from a node, iterate over each of its children
+  in some order (usually left to right)
 
   For us, each node will have its own rules,
   we'll use its type to figure out which

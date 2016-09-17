@@ -3,7 +3,8 @@
 const assert      = require('chai').assert;
 const Interpreter = require('../interpreter.js')
 
-function buildInterpreter(opts={}) {
+function buildInterpreter(opts) {
+  if(!opts) opts = {}
   let argv = opts.argv || []
   return new Interpreter({argv: argv})
 }
