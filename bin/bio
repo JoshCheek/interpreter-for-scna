@@ -2,10 +2,7 @@
 "use strict"
 
 let read        = require('fs').readFileSync
-let esprima     = require('esprima')
 let Interpreter = require('../interpreter')
-
-
 
 let printResult = process.argv.includes('-p')
 let argv        = process.argv.filter(arg => arg !== '-p')
@@ -13,9 +10,8 @@ argv.shift() // path to node
 
 let filename    = argv[1]
 let code        = read(filename, 'utf8')
-let ast         = esprima.parse(code)
 let interpreter = new Interpreter({argv: argv})
-let result      = interpreter.evaluate(ast)
+let result      = interpreter.evalCode(code)
 
 if(printResult) {
   console.dir(result, {depth: 4, colors: true})

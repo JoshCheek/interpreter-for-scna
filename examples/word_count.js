@@ -1,6 +1,6 @@
 var count_words = function(str) {
   var count = 0
-  str.split(" ").forEach(function(word) { count += 1 })
+  str.split(" ").forEach(function(word) { count = count + 1 })
   return count
 }
 

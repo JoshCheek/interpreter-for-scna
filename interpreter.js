@@ -5,9 +5,12 @@
 // TODO: vars should be looked up in the enclosing lexical scope,
 // NOT!!! earlier in the callstack
 "use strict"
+
 function p(obj) {
   console.dir(obj, {depth: 5, colors: true})
 }
+
+let esprima = require('esprima')
 
 module.exports = (function() {
   // variables https://curiosity-driven.org/private-properties-in-javascript
@@ -67,6 +70,11 @@ module.exports = (function() {
         vars:   {},
         result: this.bionull,
       }]
+    }
+
+    evalCode(code) {
+      const ast = esprima.parse(code)
+      return this.evaluate(ast)
     }
 
     evaluate(ast) {
