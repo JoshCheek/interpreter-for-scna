@@ -60,10 +60,18 @@ Parsing
   Try running `esparse examples/primitive_number.js`
   (pipe it through `jq .` for highlighting)
 
+Conventions
+  objects will be simple JS objects
+  We'll give each one a type
+  Types are: number, string, boolean, nil, object, array
+
+  Based on the type, we'll expect other keys to be set,
+
 
 !Switching on type
   notice the type corresponds to a case in the statement
   lets run the tests and work our way through the primitives
+
 
 Iterating over the structure
   It's a tree, so iterate the same way as any other tree:
@@ -75,8 +83,6 @@ Iterating over the structure
   the `evaluate` method will have a case for each possible type
 
 
-
-
 Updating state
   State is data that can change
 
@@ -85,19 +91,23 @@ Updating state
   In that case, the local variables of a function.
   
 
-
-  As far as I can tell, there are three structures that allow JavaScript to work
+3 structures
+  As far as I can tell, there are three structures
+  that allow JavaScript to work:
   
-  Have you ever written programs like:
-    examples/function_scope.js
-    examples/prototypical_inheritance.js
+  A linked list called the stack
+    It tracks `this`, and variables
+    if we got further, we'd store these variables
+    to a function instead
+
+  A linked list called inheritance
+    where each object stores data called "properties"
+    and has a link to the next node in the list as its prototype
+
+  A linked list called lexical scope
+    Where each function stores the local variables
+    and has a link called its "environment" or "context"
+    to the variables of the function that defined it
   
-  Then you were experimenting on the interpreter.
-
-
-Conventions
-  objects will be simple JS objects
-  We'll give each one a type
-  Types are: number, string, boolean, nil, object, array
-
-  Based on the type, we'll expect other keys to be set,
+  All of the behaviour we observe in JS
+    emerges from the manipulation of these three structures
