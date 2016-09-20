@@ -4,13 +4,35 @@ function p(obj) {
   console.dir(obj, {depth: 5, colors: true})
 }
 
-let esprima = require('esprima')
+const esprima = require('esprima')
 
 module.exports = (function() {
   class Interpreter {
+    constructor(deps) {
+      this.jsnull = {name: 'null', type: 'null', value: null}
+
+      this.callstack = [{
+        self:   {},
+        vars:   {},
+        result: this.jsnull,
+      }]
+    }
+
     evalCode(code) {
       const ast = esprima.parse(code)
       return this.evaluate(ast)
+    }
+
+    setReturn(value) {
+      this.frame().result = value
+    }
+
+    getResult() {
+      return this.frame().result
+    }
+
+    frame() {
+      return this.callstack[this.callstack.length-1]
     }
 
     evaluate(ast) {
@@ -61,29 +83,7 @@ module.exports = (function() {
           throw(`NEED A CASE FOR "${ast.type}" (${Object.keys(ast).join(' ')})`)
       }
       // for convenience, return the result
-      return this.currentResult()
-    }
-
-    currentResult() {
-      return this.frame().result
-    }
-
-    frame() {
-      return this.callstack[this.callstack.length-1]
-    }
-
-    setReturn(value) {
-      this.frame().result = value
-    }
-
-    constructor(deps) {
-      this.jsnull = {name: 'null', type: 'null', value: null}
-
-      this.callstack = [{
-        self:   {},
-        vars:   {},
-        result: this.jsnull,
-      }]
+      return this.getResult()
     }
 
     EvalProgram(ast) {

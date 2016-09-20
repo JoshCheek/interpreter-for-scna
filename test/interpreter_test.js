@@ -5,96 +5,91 @@ const Interpreter = require('../interpreter.js')
 
 function buildInterpreter(opts) {
   if(!opts) opts = {}
-  let argv = opts.argv || []
+  const argv = opts.argv || []
   return new Interpreter({argv: argv})
 }
 
-function interprets(opts) {
-  let input       = opts.in
-  let expected    = opts.out
-  let interpreter = buildInterpreter(opts)
-  let actual      = interpreter.evalCode(input)
-
-  for(let name in expected) {
-    assert.deepEqual(actual[name], expected[name])
-  }
+function assertEvaluates(input, expected, opts) {
+  const interpreter = buildInterpreter(opts)
+  const actual      = interpreter.evalCode(input)
+  assert.deepEqual(actual, expected)
 }
 
 describe('Interpreter', function() {
   describe('interprets simple primitives', function() {
     specify('numbers', function() {
-      interprets({in: "1", out: {type: "number", value: 1}})
+      assertEvaluates("1", {type: "number", value: 1})
     })
     specify('strings', function() {
-      interprets({in: "'a'", out: {type: "string", value: "a"}})
+      assertEvaluates("'a'", {type: "string", value: "a"})
     })
     specify('true', function() {
-      interprets({in: "true", out: {type: "boolean", value: true}})
+      assertEvaluates("true", {type: "boolean", value: true})
     })
     specify('false', function() {
-      interprets({in: "false", out: {type: "boolean", value: false}})
+      assertEvaluates("false", {type: "boolean", value: false})
     })
     specify('null', function() {
-      interprets({in: "null", out: {type: "null", value: null}})
+      assertEvaluates("null", {type: "null", value: null})
     })
   })
 
   describe('interprets simple math equations', function() {
     specify('addition', function() {
-      interprets({in: "1+2", out: {type: "number", value: 3}})
+      assertEvaluates("1+2", {type: "number", value: 3})
     })
     specify('less than', function() {
-      interprets({in: "1<2", out: {type: "boolean", value: true}})
-      interprets({in: "2<1", out: {type: "boolean", value: false}})
+      assertEvaluates("1<2", {type: "boolean", value: true})
+      assertEvaluates("2<1", {type: "boolean", value: false})
     })
     specify('greater than', function() {
-      interprets({in: "1>2", out: {type: "boolean", value: false}})
-      interprets({in: "2>1", out: {type: "boolean", value: true}})
+      assertEvaluates("1>2", {type: "boolean", value: false})
+      assertEvaluates("2>1", {type: "boolean", value: true})
     })
     specify('comparison', function() {
-      interprets({in: "1 === 2", out: {type: "boolean", value: false}})
-      interprets({in: "2 === 2", out: {type: "boolean", value: true}})
+      assertEvaluates("1 === 2", {type: "boolean", value: false})
+      assertEvaluates("2 === 2", {type: "boolean", value: true})
     })
   })
 
   describe('simple variables', function() {
     it('can set and get a variable at the toplevel', function() {
-      interprets({in: "var a = 1; a", out: {type: "number", value: 1}})
+      assertEvaluates("var a = 1; a", {type: "number", value: 1})
     })
     it('can use the variable in a more complex expression', function() {
-      interprets({in: "var a = 1; a+a", out: {type: "number", value: 2}})
+      assertEvaluates("var a = 1; a+a", {type: "number", value: 2})
     })
     it('can set a variable it has previously set', function() {
-      interprets({in: "var a = 1; a = 2; a+a", out: {type: "number", value: 4}})
+      assertEvaluates("var a = 1; a = 2; a+a", {type: "number", value: 4})
     })
   })
 
   describe('grouping statements with a block', function() {
     it('evaluates each expression, resulting in the last', function() {
-      interprets({in: "{var a = 1; var b = 2; a+b}", out: {type: "number", value: 3}})
+      assertEvaluates("{var a = 1; var b = 2; a+b}", {type: "number", value: 3})
     })
   })
 
   describe('if statements', function() {
     it('evaluates the body when the condition is true', function() {
-      interprets({in: "var a=1; if(true) a = 2; a", out: {type: "number", value: 2}})
+      assertEvaluates("var a=1; if(true) a = 2; a", {type: "number", value: 2})
     })
 
     it('does not evaluate the body when the condition is false', function() {
-      interprets({in: "var a=1; if(false) a = 2; a", out: {type: "number", value: 1}})
+      assertEvaluates("var a=1; if(false) a = 2; a", {type: "number", value: 1})
     })
 
     it('ignores the else clause when the condition is true', function() {
-      interprets({in: "var a=1; if(true) { a = 2 } else { a = 3 }; a", out: {type: "number", value: 2}})
+      assertEvaluates("var a=1; if(true) { a = 2 } else { a = 3 }; a", {type: "number", value: 2})
     })
 
     it('evalues the else clause when the condition is true', function() {
-      interprets({in: "var a=1; if(false) { a = 2 } else { a = 3 }; a", out: {type: "number", value: 3}})
+      assertEvaluates("var a=1; if(false) { a = 2 } else { a = 3 }; a", {type: "number", value: 3})
     })
 
     it('can handle complex conditionals', function() {
-      interprets({in: "var a=1; if(1 === 2) { a = 2 } else { a = 3 }; a", out: {type: "number", value: 3}})
-      interprets({in: "var a=1; if(2 === 2) { a = 2 } else { a = 3 }; a", out: {type: "number", value: 2}})
+      assertEvaluates("var a=1; if(1 === 2) { a = 2 } else { a = 3 }; a", {type: "number", value: 3})
+      assertEvaluates("var a=1; if(2 === 2) { a = 2 } else { a = 3 }; a", {type: "number", value: 2})
     })
   })
 
@@ -160,30 +155,28 @@ describe('Interpreter', function() {
     })
 
     it('looks up successive property invocations on the result of the previous one', function() {
-      interprets({
-        argv: ['a'],
-        in: "process.argv",
-        out: { type: 'array', value: [{type: 'string', value: 'a'}] },
-      })
+      interprets(
+        "process.argv",
+        { type: 'array', value: [{type: 'string', value: 'a'}] },
+        {argv: ['a']}
+      )
     })
   })
 
   describe('native function invocation', function() {
     it('can slice argv', function() {
-      interprets({
-        argv: ['a', 'b', 'c'],
-        in: "process.argv.slice(1)",
-        out: { type: 'array', value: [{type: 'string', value: 'b'}, {type: 'string', value: 'c'}] },
-      })
-      interprets({
-        argv: ['a', 'b', 'c'],
-        in: "process.argv.slice(2)",
-        out: { type: 'array', value: [{type: 'string', value: 'c'}] },
-      })
+      interprets(
+        "process.argv.slice(1)",
+        { type: 'array', value: [{type: 'string', value: 'b'}, {type: 'string', value: 'c'}] },
+        {argv: ['a', 'b', 'c']}
+      )
+      interprets(
+        "process.argv.slice(2)",
+        { type: 'array', value: [{type: 'string', value: 'c'}] },
+        {argv: ['a', 'b', 'c']}
+      )
     })
   })
-
-
 })
 // // native functions
 // "console"
