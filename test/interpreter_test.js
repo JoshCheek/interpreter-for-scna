@@ -319,6 +319,13 @@ describe('Interpreter', function() {
         {type: 'number', value: 14}
       )
     })
+
+    it('can look up properties several levels deep', function() {
+      assertEvaluates(
+        "var a = {b: 1}; var c = {d: a}; c.d.b",
+        {type: 'number', value: 1}
+      )
+    })
   })
 
   describe('this', function() {
@@ -361,7 +368,8 @@ describe('Interpreter', function() {
     })
   })
 
-  describe('native function invocation', function() {
+
+  describe('native function invocation (will require modifications to EvalCallExpression)', function() {
     it('can slice argv', function() {
       assertEvaluates(
         "process.argv.slice(1)",
@@ -373,37 +381,21 @@ describe('Interpreter', function() {
         { type: 'array', value: [{type: 'string', value: 'c'}] },
         {argv: ['a', 'b', 'c']}
       )
+      assertEvaluates(
+        "process.argv.slice(2); process.argv",
+        { type: 'array', value: [{type: 'string', value: 'a'}, {type: 'string', value: 'b'}, {type: 'string', value: 'c'}] },
+        {argv: ['a', 'b', 'c']}
+      )
+    })
+
+    xit('can log to the console', function() {
+      const stdout = "idk, some sort of fake stream that can record what was written to it"
+      const interpreter = buildInterpreter({stdout: stdout})
+      const actual = interpreter.evalCode("console.log('hello')")
+      assert.equal(actual.type,  "null")
     })
   })
 })
-// // native functions
-// "console"
-// "console.log('hello')"
 
-// // Stack
-//   // return values
-//   "var f = function() { return 123 }; f()"
-//   "var f = function() { 123 }; f()"
-
-//   "var f = function() { return 1 }; var g = function() { return f() }; g()"
-//   "var f = function() { return 1 }; var g = function() { return f()+2 }; g()"
-
-//   // local vars
-//   "var a=1; var b = 20; var f = function() { var a = 2; return a + b }; f()"
-
-//   // variable access is based on the lexical scope
-//   `var a1 = 1; var a2 = 2; var a3 = 3;
-//    var f = function() {
-//      var a2 = 4
-//      return function() { var a3 = 5 }
-//    }
-//    f()()`
-//    "var a = 1; var f = function() { return a }; var g = function() { var a = 3; return f() }; g()"
-
-//   // args
-//   "var f = function(x) { return x + 1 }; f(10)" // 11
-
-// // prototypical inheritance
-
-
-// // builtins: forEach, split, console.log, process.exit
+// prototypical inheritance
+// builtins: forEach, split, console.log, process.exit
