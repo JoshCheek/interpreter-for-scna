@@ -176,6 +176,10 @@ describe('Interpreter', function() {
       assert.equal(result, interp.jsglobal.jsprops.process)
     })
 
+    // NOTE: This is true in the node REPL, but not when running it against a file
+    // https://twitter.com/josh_cheek/status/781047943696674816
+    // It's possibly a bug:
+    // https://github.com/nodejs/node-v0.x-archive/issues/6254
     specify('when a variable is set at the toplevel, it is saved on the global object', function() {
       const interp = buildInterpreter()
       interp.evalCode("var a = 1")
@@ -313,6 +317,46 @@ describe('Interpreter', function() {
       assertEvaluates(
         "var obj = {num: 14}; obj.num",
         {type: 'number', value: 14}
+      )
+    })
+  })
+
+  describe('this', function() {
+    it('is the global object at the top-level', function() {
+      const interpreter = buildInterpreter()
+      assert.deepEqual(interpreter.frame().self, interpreter.jsglobal)
+
+      const actual = interpreter.evalCode('this')
+      assert.deepEqual(actual, interpreter.jsglobal)
+    })
+
+    it('is set to the object a function was called on', function() {
+      assertEvaluates(`
+        var num = 1
+        var obj = {
+          num: 2,
+          getNum: function() {
+            return this.num
+          }
+        }
+        obj.getNum()
+      `,
+        {type: 'number', value: 2}
+      )
+    })
+
+    it('is set to the global object, when a function is not called on an object', function() {
+      assertEvaluates(`
+        var num = 1
+        var obj = {
+          num: 2,
+          getGlobalNum: function() {
+            return (function() { return this.num })()
+          }
+        }
+        obj.getGlobalNum()
+      `,
+        {type: 'number', value: 1}
       )
     })
   })

@@ -85,6 +85,9 @@ module.exports = (function() {
         case 'ObjectExpression':
           this.EvalObjectExpression(ast)
           break
+        case 'ThisExpression':
+          this.EvalThisExpression(ast)
+          break
         default:
           throw(`NEED A CASE FOR "${ast.type}" (${Object.keys(ast).join(' ')})`)
       }
@@ -202,6 +205,11 @@ module.exports = (function() {
     EvalObjectExpression(ast) {
       p(ast)
       throw("EvalObjectExpression")
+    }
+
+    EvalThisExpression(ast) {
+      p(ast)
+      throw("EvalThisExpression")
     }
   }
 
