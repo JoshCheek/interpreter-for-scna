@@ -287,6 +287,36 @@ describe('Interpreter', function() {
     })
   })
 
+  describe('simple objects', function() {
+    it('has no visble properties by default', function() {
+      assertEvaluates(
+        "({})",
+        {type: 'object', jsprops: {}}
+      )
+    })
+
+    it('can have properties from its definition', function() {
+      assertEvaluates(
+        "({num: 12})",
+        {type: 'object', jsprops: {num: {type: 'number', value: 12}}}
+      )
+    })
+
+    it('can set properties (you\'ll need to explicitly check in EvalMemberExpression)', function() {
+      assertEvaluates(
+        "var obj = {}; obj.num = 13; obj",
+        {type: 'object', jsprops: {num: {type: 'number', value: 13}}}
+      )
+    })
+
+    it('can look up properties', function() {
+      assertEvaluates(
+        "var obj = {num: 14}; obj.num",
+        {type: 'number', value: 14}
+      )
+    })
+  })
+
   describe('native function invocation', function() {
     it('can slice argv', function() {
       assertEvaluates(

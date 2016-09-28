@@ -82,6 +82,9 @@ module.exports = (function() {
         case 'ReturnStatement':
           this.EvalReturnStatement(ast)
           break
+        case 'ObjectExpression':
+          this.EvalObjectExpression(ast)
+          break
         default:
           throw(`NEED A CASE FOR "${ast.type}" (${Object.keys(ast).join(' ')})`)
       }
@@ -194,6 +197,11 @@ module.exports = (function() {
     EvalReturnStatement(ast) {
       p(ast)
       throw("EvalReturnStatement")
+    }
+
+    EvalObjectExpression(ast) {
+      p(ast)
+      throw("EvalObjectExpression")
     }
   }
 
