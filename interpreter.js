@@ -1,7 +1,7 @@
 "use strict"
 
-function p(obj) {
-  console.dir(obj, {depth: 5, colors: true})
+function p(...objs) {
+  objs.forEach(obj => console.dir(obj, {depth: 5, colors: true}))
 }
 
 const esprima = require('esprima')
