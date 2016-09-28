@@ -191,7 +191,7 @@ describe('Interpreter', function() {
     })
   })
 
-  describe('defining and calling functions', function() {
+  describe('defining and calling functions / lexical scope', function() {
     it('can create an anonymous function', function() {
       assertEvaluates(
         "(function(a) { return 12 })",

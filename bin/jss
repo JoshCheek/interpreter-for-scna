@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 "use strict"
 
-let read        = require('fs').readFileSync
-let Interpreter = require('../interpreter')
+const read        = require('fs').readFileSync
+const Interpreter = require('../interpreter')
 
-let printResult = process.argv.includes('-p')
-let argv        = process.argv.filter(arg => arg !== '-p')
+const printResult = process.argv.includes('-p')
+const argv        = process.argv.filter(arg => arg !== '-p')
 argv.shift() // path to node
 
-let filename    = argv[1]
-let code        = read(filename, 'utf8')
-let interpreter = new Interpreter({argv: argv})
-let result      = interpreter.evalCode(code)
+const filename    = argv[1]
+const code        = read(filename, 'utf8')
+const interpreter = new Interpreter({argv: argv})
+const result      = interpreter.evalCode(code)
 
 if(printResult) {
   console.dir(result, {depth: 4, colors: true})
