@@ -1,4 +1,6 @@
 'use strict'
+const stream = require('stream')
+
 function p(...objs) {
   objs.forEach(obj => console.dir(obj, {depth: 5, colors: true}))
 }
@@ -9,8 +11,9 @@ const Interpreter = require('../interpreter.js')
 
 function buildInterpreter(opts) {
   if(!opts) opts = {}
-  const argv = opts.argv || []
-  return new Interpreter({argv: argv})
+  const argv   = opts.argv || []
+  const stdout = opts.stdout || stream.Writable({write: function() {return true}})
+  return new Interpreter({argv: argv, stdout: stdout})
 }
 
 function assertEvaluates(input, expected, opts) {
@@ -149,14 +152,14 @@ describe('Interpreter', function() {
     })
 
     specify('process contains another variable, `argv`, which is an array wrapping argv', function() {
-      const interp = new Interpreter({argv: []})
+      const interp = buildInterpreter({argv: []})
       const argv   = interp.jsglobal.jsprops.process.jsprops.argv
       assert.equal(argv.type, "array")
       assert.deepEqual(argv.value, [])
     })
 
     specify('argv\'s args are internal strings', function() {
-      const interp = new Interpreter({argv: ['arg1', 'arg2']})
+      const interp = buildInterpreter({argv: ['arg1', 'arg2']})
       assert.deepEqual(interp.jsglobal.jsprops.process.jsprops.argv.value, [
         {type: "string", value: 'arg1'},
         {type: "string", value: 'arg2'},
@@ -388,8 +391,13 @@ describe('Interpreter', function() {
       )
     })
 
-    xit('can log to the console', function() {
-      const stdout = "idk, some sort of fake stream that can record what was written to it"
+    it('can log to the console', function(done) {
+      let written  = ""
+      const stdout = {write: function(text) {
+        assert.equal(text, "hello\n")
+        done()
+        return true
+      }}
       const interpreter = buildInterpreter({stdout: stdout})
       const actual = interpreter.evalCode("console.log('hello')")
       assert.equal(actual.type,  "null")
