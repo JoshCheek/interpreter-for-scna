@@ -1,4 +1,8 @@
 'use strict'
+function p(...objs) {
+  objs.forEach(obj => console.dir(obj, {depth: 5, colors: true}))
+}
+
 
 const assert      = require('chai').assert;
 const Interpreter = require('../interpreter.js')
@@ -12,10 +16,24 @@ function buildInterpreter(opts) {
 function assertEvaluates(input, expected, opts) {
   const interpreter = buildInterpreter(opts)
   const actual      = interpreter.evalCode(input)
-  assert.deepEqual(actual, expected)
+  for(let name in expected) {
+    assert.deepEqual(actual[name], expected[name])
+  }
 }
 
 describe('Interpreter', function() {
+  describe('tracks the object that represents singletons', function() {
+    specify('jsnull will give us our `null` object, it has a name, type, and value (so that it can work in a wide variety of places', function() {
+      assert.deepEqual(buildInterpreter().jsnull, {name: 'null', type: 'null', value: null})
+    })
+    specify('jstrue will give us our `true` object, it has a name, type, and value (so that it can work in a wide variety of places', function() {
+      assert.deepEqual(buildInterpreter().jstrue, {name: 'true', type: 'boolean', value: true})
+    })
+    specify('jsfalse will give us our `false` object, it has a name, type, and value (so that it can work in a wide variety of places', function() {
+      assert.deepEqual(buildInterpreter().jsfalse, {name: 'false', type: 'boolean', value: false})
+    })
+  })
+
   describe('interprets simple primitives', function() {
     specify('numbers', function() {
       assertEvaluates("1", {type: "number", value: 1})
@@ -23,14 +41,17 @@ describe('Interpreter', function() {
     specify('strings', function() {
       assertEvaluates("'a'", {type: "string", value: "a"})
     })
-    specify('true', function() {
-      assertEvaluates("true", {type: "boolean", value: true})
+    specify('`true` always evaluates to our singleton true object', function() {
+      const interpreter = buildInterpreter()
+      assert.deepEqual(interpreter.evalCode('true'), interpreter.jstrue)
     })
-    specify('false', function() {
-      assertEvaluates("false", {type: "boolean", value: false})
+    specify('`false` always evaluates to our singleton false object', function() {
+      const interpreter = buildInterpreter()
+      assert.deepEqual(interpreter.evalCode('false'), interpreter.jsfalse)
     })
-    specify('null', function() {
-      assertEvaluates("null", {type: "null", value: null})
+    specify('`null` always evaluates to our singleton null object', function() {
+      const interpreter = buildInterpreter()
+      assert.deepEqual(interpreter.evalCode('null'), interpreter.jsnull)
     })
   })
 
@@ -53,6 +74,13 @@ describe('Interpreter', function() {
   })
 
   describe('simple variables', function() {
+    it('can set a variable at the toplevel', function() {
+      const interpreter = buildInterpreter()
+      interpreter.evalCode('var a = 1')
+      const expected = {type: 'number', value: 1}
+      const actual   = interpreter.frame().vars['a']
+      assert.deepEqual(actual, expected)
+    })
     it('can set and get a variable at the toplevel', function() {
       assertEvaluates("var a = 1; a", {type: "number", value: 1})
     })
@@ -155,7 +183,7 @@ describe('Interpreter', function() {
     })
 
     it('looks up successive property invocations on the result of the previous one', function() {
-      interprets(
+      assertEvaluates(
         "process.argv",
         { type: 'array', value: [{type: 'string', value: 'a'}] },
         {argv: ['a']}
@@ -163,14 +191,110 @@ describe('Interpreter', function() {
     })
   })
 
+  describe('defining and calling functions', function() {
+    it('can create an anonymous function', function() {
+      assertEvaluates(
+        "(function(a) { return 12 })",
+        {type: 'FunctionExpression'}
+      )
+    })
+
+    it('stores the function\'s lexical scope, the vars of the stack frame it was defined in', function() {
+      const interpreter = buildInterpreter()
+      const actual      = interpreter.evalCode(
+        "var x = 12; (function() {})"
+      )
+      assert.deepEqual(actual.lexicalScope.x, {type: 'number', value: 12})
+    })
+
+    it('updates the stack frame\'s return value with the function result', function() {
+      assertEvaluates(
+        "(function() { return 12 })()",
+        { type: 'number', value: 12 }
+      )
+    })
+
+    it('defaults the function body to null (implies it gets its own stack frame)', function() {
+      assertEvaluates("(function() {})()", { type: 'null' })
+    })
+
+    it('can pass an argument to the function', function() {
+      assertEvaluates(
+        "(function(a) { return a+a })(1)",
+        { type: 'number', value: 2 }
+      )
+    })
+
+    it('keeps the functions arguments in a separate stack frame', function() {
+      assertEvaluates(
+        "var a = 1; (function(a) { return a })(2)",
+        {type: 'number', value: 2}
+      )
+    })
+
+    it('removes the stack frame after the function invocation', function() {
+      assertEvaluates(
+        "var a = 1; (function(a) { return a })(2); a",
+        {type: 'number', value: 1}
+      )
+    })
+
+    it('can invoke a function with multiple argumnts', function() {
+      assertEvaluates(
+        "(function(a, b) { return a+b })(2, 3)",
+        {type: 'number', value: 5}
+      )
+    })
+
+    it('can save a function, look it up, and invoke it', function() {
+      assertEvaluates(
+        "var fn = function(a) { return a }; fn(2)",
+        {type: 'number', value: 2}
+      )
+    })
+
+    it('looks in the lexical scope if it does not have the argument', function() {
+      assertEvaluates(
+        "var a = 1; (function(b) { return a+b })(2)",
+        {type: 'number', value: 3}
+      )
+    })
+
+    it('uses the defining environment\'s vars for the function\'s lexical scope, not, for example, the base vars', function() {
+      assertEvaluates(
+        `var a = 1;
+        (function(b) {
+          return function(c) { return a+b+c }
+        })(2)(3)`,
+        {type: 'number', value: 6}
+      )
+    })
+
+    it('allows functions to look up variables that they have set', function() {
+      assertEvaluates(
+        "var a = 1; (function() { var a = 2; return a })()",
+        {type: 'number', value: 2}
+      )
+    })
+
+    it('sets variables in the function\'s vars, not the lexical scope\'s vars', function() {
+      assertEvaluates(
+        `var a = 1;
+        (function() { var a = 2 })()
+        a`,
+        {type: 'number', value: 1}
+      )
+    })
+  })
+
   describe('native function invocation', function() {
     it('can slice argv', function() {
-      interprets(
+      assertEvaluates(
         "process.argv.slice(1)",
         { type: 'array', value: [{type: 'string', value: 'b'}, {type: 'string', value: 'c'}] },
         {argv: ['a', 'b', 'c']}
       )
-      interprets(
+      assertEvaluates(
         "process.argv.slice(2)",
         { type: 'array', value: [{type: 'string', value: 'c'}] },
         {argv: ['a', 'b', 'c']}

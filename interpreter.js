@@ -79,6 +79,9 @@ module.exports = (function() {
         case 'EmptyStatement':
           this.EvalEmptyStatement(ast)
           break
+        case 'ReturnStatement':
+          this.EvalReturnStatement(ast)
+          break
         default:
           throw(`NEED A CASE FOR "${ast.type}" (${Object.keys(ast).join(' ')})`)
       }
@@ -186,6 +189,11 @@ module.exports = (function() {
 
     EvalEmptyStatement(ast) {
       // noop
+    }
+
+    EvalReturnStatement(ast) {
+      p(ast)
+      throw("EvalReturnStatement")
     }
   }
 
