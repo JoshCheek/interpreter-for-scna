@@ -10,7 +10,7 @@ argv.shift() // path to node
 
 const filename    = argv[1]
 const code        = read(filename, 'utf8')
-const interpreter = new Interpreter({argv: argv})
+const interpreter = new Interpreter({argv: argv, stdout: process.stdout})
 const result      = interpreter.evalCode(code)
 
 if(printResult) {
